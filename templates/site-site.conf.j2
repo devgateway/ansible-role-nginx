@@ -1,0 +1,28 @@
+{%- macro ngx_site(name, ssl, content) %}
+server {
+    name {{ name }};
+    listen {{ ssl | ternary(443, 80) }};
+    {% if ssl -%}
+    ssl on;
+    {% endif %}
+
+    {{ content | indent }}
+}
+{% endmacro -%}
+
+{%- if site.server_name is string %}
+  {%- set server_name = site.server_name -%}
+{% else %}
+  {%- set server_name -%}
+    {{ site.server_name | sort | join(' ') }}
+  {%- endset -%}
+{% endif -%}
+
+{% if site.ssl.mode is not defined or site.ssl.mode == "required" -%}
+{{ ngx_site(server_name, false, 'return 301 https://$http_host$request_uri;') }}
+
+{% set content %}
+# configuration here
+{%- endset -%}
+{{ ngx_site(server_name, true, content) }}
+{%- endif %}
