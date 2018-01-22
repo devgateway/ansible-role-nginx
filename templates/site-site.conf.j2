@@ -30,7 +30,7 @@ return 301 {{ ssl | ternary('https', 'http') }}://{{ host }}$request_uri;
 {%- endmacro -%}
 
 {%- macro ngx_directive_dict(directive, values) -%}
-{% for key, value in values.iteritems() %}
+{% for key, value in values | dictsort %}
 {{ directive }} {{ key }} {{ ngx_value(value) }};
 {% endfor %}
 {%- endmacro -%}
@@ -46,17 +46,17 @@ return 301 {{ ssl | ternary('https', 'http') }}://{{ host }}$request_uri;
 {%- endmacro -%}
 
 {%- macro ngx_headers(cfg) %}
-{% if cfg.set is defined %}
+{%- if cfg.set is defined %}
 # pass headers to the backend
 {{ ngx_directive_dict('proxy_set_header', cfg.set) }}
 {% endif -%}
 
-{% if cfg.ignore is defined %}
+{%- if cfg.ignore is defined %}
 # ignore headers produced by the backend
 {{ ngx_directive_list('proxy_ignore_headers', cfg.ignore, true) }}
 {% endif %}
 
-{% if cfg.hide is defined %}
+{%- if cfg.hide is defined %}
 # hide headers produced by the backend
 {{ ngx_directive_list('proxy_hide_header', cfg.ignore, false) }}
 {% endif %}
