@@ -34,13 +34,9 @@ server {
 {%- endfor %}
 {% endmacro -%}
 
-{%- if site.server_name is string %}
-  {%- set server_name = site.server_name -%}
-{% else %}
-  {%- set server_name -%}
-    {{ site.server_name | sort | join(' ') }}
-  {%- endset -%}
-{% endif -%}
+{%- set server_name -%}
+  {{ site.names | sort | join(' ') }}
+{%- endset -%}
 
 {% if site.ssl.mode is not defined or site.ssl.mode == "required" -%}
 {{ ngx_site(server_name, false, 'return 301 https://$http_host$request_uri;') }}
