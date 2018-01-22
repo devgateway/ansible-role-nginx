@@ -64,6 +64,30 @@ return 301 {{ ssl | ternary('https', 'http') }}://{{ host }}$request_uri;
 {% endif -%}
 {%- endmacro -%}
 
+{%- macro ngx_location(loc) %}
+{% set match_op %}
+{% if loc.match is not defined or loc.match == 'prefix' %}
+{% elif loc.match == 'regex' %}
+ ~
+{% elif loc.match == 'iregex' %}
+ ~*
+{% else %}{# longest prefix, no regex: ^~ #}
+ ^~
+{% endif %}
+{% endset %}
+location{{ match_op }} {{ loc.location }} {
+    {{ ngx_location_content(loc) | indent }}
+}
+{%- endmacro -%}
+
+{% macro ngx_location_content(loc) %}
+{% if loc.proxy.headers is defined %}
+{{ ngx_headers(loc.proxy.headers) }}
+{%- endif -%}
+
+proxy_pass {{ loc.proxy.pass }};
+{%- endmacro -%}
+
 {%- set use_ssl = site.ssl.enabled is not defined or site.ssl.enabled -%}
 
 {# redirects from other domains to the primary domain #}
@@ -100,7 +124,13 @@ return 301 {{ ssl | ternary('https', 'http') }}://{{ host }}$request_uri;
   gzip {{ ngx_value(site.gzip) }};
 {% endif %}
 
+{% if site.proxy is defined and site.proxy.headers is defined %}
 {{ ngx_headers(site.proxy.headers) }}
+{%- endif -%}
+
+{%- for loc in site.locations %}
+{{ ngx_location(loc) }}
+{% endfor %}
 {%- endset %}
 
 {{ ngx_site(server_name, site.ssl.enabled, content) }}
