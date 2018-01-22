@@ -67,25 +67,36 @@ return 301 {{ ssl | ternary('https', 'http') }}://{{ host }}$request_uri;
 {%- macro ngx_location(loc) %}
 {% set match_op %}
 {% if loc.match is not defined or loc.match == 'prefix' %}
-{% elif loc.match == 'regex' %}
+{% elif loc.match == 'exact' %}
+ =
+{%- elif loc.match == 'regex' %}
  ~
-{% elif loc.match == 'iregex' %}
+{%- elif loc.match == 'iregex' %}
  ~*
-{% else %}{# longest prefix, no regex: ^~ #}
+{%- else %}{# longest prefix, no regex: ^~ #}
  ^~
-{% endif %}
+{%- endif %}
 {% endset %}
 location{{ match_op }} {{ loc.location }} {
     {{ ngx_location_content(loc) | indent }}
 }
-{%- endmacro -%}
+{% endmacro -%}
 
 {% macro ngx_location_content(loc) %}
+{% if loc.proxy is defined %}
 {% if loc.proxy.headers is defined %}
 {{ ngx_headers(loc.proxy.headers) }}
-{%- endif -%}
-
 proxy_pass {{ loc.proxy.pass }};
+{% else %}
+
+{% endif %}
+{% else %}
+{% endif %}
+{% if loc.locations is defined %}
+{% for subloc in loc.locations %}
+{{ ngx_location(subloc) }}
+{% endfor %}
+{% endif %}
 {%- endmacro -%}
 
 {%- set use_ssl = site.ssl.enabled is not defined or site.ssl.enabled -%}
