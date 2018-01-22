@@ -29,17 +29,39 @@ server {
 return 301 {{ ssl | ternary('https', 'http') }}://{{ host }}$request_uri;
 {%- endmacro -%}
 
-{%- macro ngx_directives(module) -%}
-{% for directive, value in site[module].iteritems() -%}
-{% if value is mapping %}
-{% for key, subvalue in value.iteritems() %}
-{{ module }}_{{ directive }} {{ key }} {{ ngx_value(subvalue) }};
+{%- macro ngx_directive_dict(directive, values) -%}
+{% for key, value in values.iteritems() %}
+{{ directive }} {{ key }} {{ ngx_value(value) }};
 {% endfor %}
+{%- endmacro -%}
+
+{%- macro ngx_directive_list(directive, values, multiple) -%}
+{% if multiple %}
+{{ directive }} {{ values | sort | join(' ') }};
 {% else %}
-{{ module }}_{{ directive }} {{ ngx_value(value) }};
+{% for value in values %}
+{{ directive }} {{ ngx_value(value) }};
+{% endfor %}
 {% endif %}
-{%- endfor %}
-{% endmacro -%}
+{%- endmacro -%}
+
+{%- macro ngx_headers(cfg) %}
+{% if cfg.set is defined %}
+# pass headers to the backend
+{{ ngx_directive_dict('proxy_set_header', cfg.set) }}
+{% endif -%}
+
+{% if cfg.ignore is defined %}
+# ignore headers produced by the backend
+{{ ngx_directive_list('proxy_ignore_headers', cfg.ignore, true) }}
+{% endif %}
+
+{% if cfg.hide is defined %}
+# hide headers produced by the backend
+{{ ngx_directive_list('proxy_hide_header', cfg.ignore, false) }}
+{% endif %}
+
+{%- endmacro -%}
 
 {%- set use_ssl = site.ssl.enabled is not defined or site.ssl.enabled -%}
 
@@ -77,7 +99,7 @@ return 301 {{ ssl | ternary('https', 'http') }}://{{ host }}$request_uri;
   gzip {{ ngx_value(site.gzip) }};
 {% endif %}
 
-{{ ngx_directives('proxy') }}
+{{ ngx_headers(site.proxy.headers) }}
 {%- endset %}
 
 {{ ngx_site(server_name, site.ssl.enabled, content) }}
