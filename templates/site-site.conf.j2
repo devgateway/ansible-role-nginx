@@ -15,6 +15,8 @@ server {
     {{ value | sort | join(' ') }}
   {%- elif value is sameas true -%}
     on
+  {%- elif value is sameas false -%}
+    off
   {%- else -%}
     {{ value }}
   {%- endif -%}
@@ -32,13 +34,6 @@ server {
 {%- endfor %}
 {% endmacro -%}
 
-{%- macro ngx_gzip_settings() -%}
-{%- if site.gzip is defined -%}
-gzip on;
-{{ ngx_directives('gzip') }}
-{%- endif -%}
-{%- endmacro -%}
-
 {%- if site.server_name is string %}
   {%- set server_name = site.server_name -%}
 {% else %}
@@ -51,7 +46,11 @@ gzip on;
 {{ ngx_site(server_name, false, 'return 301 https://$http_host$request_uri;') }}
 
 {%- set content -%}
-{{ ngx_gzip_settings() }}
+
+{%- if site.gzip is defined -%}
+  gzip {{ ngx_value(site.gzip) }};
+{% endif %}
+
 {{ ngx_directives('proxy') }}
 {%- endset -%}
 {{ ngx_site(server_name, true, content) }}
