@@ -29,12 +29,14 @@ server {
 return 301 {{ ssl | ternary('https', 'http') }}://{{ host }}$request_uri;
 {%- endmacro -%}
 
+{# format a directive and key-value arguments #}
 {%- macro ngx_directive_dict(directive, values) -%}
 {% for key, value in values | dictsort %}
 {{ directive }} {{ key }} {{ ngx_value(value) }};
 {% endfor %}
 {%- endmacro -%}
 
+{# format a multi-valued directive, or several single-valued directives #}
 {%- macro ngx_directive_list(directive, values, multiple) -%}
 {% if multiple %}
 {{ directive }} {{ values | sort | join(' ') }};
@@ -59,8 +61,7 @@ return 301 {{ ssl | ternary('https', 'http') }}://{{ host }}$request_uri;
 {%- if cfg.hide is defined %}
 # hide headers produced by the backend
 {{ ngx_directive_list('proxy_hide_header', cfg.ignore, false) }}
-{% endif %}
-
+{% endif -%}
 {%- endmacro -%}
 
 {%- set use_ssl = site.ssl.enabled is not defined or site.ssl.enabled -%}
