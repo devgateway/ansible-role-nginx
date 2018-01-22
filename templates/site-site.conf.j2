@@ -1,3 +1,4 @@
+{# server block #}
 {%- macro ngx_site(server_name, ssl, content) %}
 server {
     server_name {{ server_name }};
@@ -10,6 +11,7 @@ server {
 }
 {% endmacro -%}
 
+{# format directive value as array, boolean, or literal #}
 {%- macro ngx_value(value) -%}
   {%- if value is sequence and value is not string -%}
     {{ value | sort | join(' ') }}
@@ -20,6 +22,11 @@ server {
   {%- else -%}
     {{ value }}
   {%- endif -%}
+{%- endmacro -%}
+
+{# redirect to a given host #}
+{%- macro ngx_permanent_redirect(ssl, host) -%}
+return 301 {{ ssl | ternary('https', 'http') }}://{{ host }}$request_uri;
 {%- endmacro -%}
 
 {%- macro ngx_directives(module) -%}
@@ -34,12 +41,31 @@ server {
 {%- endfor %}
 {% endmacro -%}
 
+{%- set use_ssl = site.ssl.enabled is not defined or site.ssl.enabled -%}
+
+{# redirects from other domains to the primary domain #}
+{% if site.redirect_from is defined %}
+{% set other_names -%}
+  {{ site.redirect_from | sort | join(' ') }}
+{%- endset -%}
+
+{# redirect to the primary domain (plaintext) #}
+{% if use_ssl %}
+{{ ngx_site(other_names, false, ngx_permanent_redirect(true, site.names[0])) }}{{ '\n' }}
+{%- endif -%}
+
+{# redirect to the primary domain #}
+{{ ngx_site(other_names, use_ssl, ngx_permanent_redirect(true, site.names[0])) }}
+{% endif %}
+
 {%- set server_name -%}
   {{ site.names | sort | join(' ') }}
 {%- endset -%}
 
-{% if site.ssl.mode is not defined or site.ssl.mode == "required" -%}
-{{ ngx_site(server_name, false, 'return 301 https://$http_host$request_uri;') }}
+{# redirect from plaintext to SSL #}
+{% if use_ssl %}
+{{ ngx_site(server_name, false, ngx_permanent_redirect(true, '$http_host')) }}
+{%- endif %}
 
 {%- set content -%}
 
@@ -54,5 +80,4 @@ server {
 {{ ngx_directives('proxy') }}
 {%- endset %}
 
-{{ ngx_site(server_name, true, content) }}
-{%- endif %}
+{{ ngx_site(server_name, site.ssl.enabled, content) }}
