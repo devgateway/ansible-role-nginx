@@ -1,6 +1,6 @@
-{%- macro ngx_site(name, ssl, content) %}
+{%- macro ngx_site(server_name, ssl, content) %}
 server {
-    name {{ name }};
+    server_name {{ server_name }};
     listen {{ ssl | ternary(443, 80) }};
     {% if ssl -%}
     ssl on;
@@ -47,11 +47,16 @@ server {
 
 {%- set content -%}
 
-{%- if site.gzip is defined -%}
+{% if site.client_max_body_size is defined -%}
+  client_max_body_size {{ site.client_max_body_size }};
+{% endif %}
+
+{% if site.gzip is defined -%}
   gzip {{ ngx_value(site.gzip) }};
 {% endif %}
 
 {{ ngx_directives('proxy') }}
-{%- endset -%}
+{%- endset %}
+
 {{ ngx_site(server_name, true, content) }}
 {%- endif %}
