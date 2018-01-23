@@ -76,19 +76,7 @@ server {
 {%- endif %}
 {% endset %}
 location{{ match_op }} {{ loc.location }} {
-{% if loc.proxy is defined %}
-{% if loc.proxy.headers is defined %}
-    {{ ngx_headers(loc.proxy.headers) | indent }}
-    proxy_pass {{ loc.proxy.pass }};
-{% endif %}
-{% else %}
-{% endif %}
-{% if loc.locations is defined %}
-
-{% for subloc in loc.locations %}
-    {{ ngx_location(subloc) | indent }}
-{%- endfor %}
-{% endif %}
+    {{ ngx_block_content(loc) | indent }}
 }
 {% endmacro -%}
 
@@ -102,10 +90,13 @@ gzip {{ ngx_value(this.gzip) }};
 {% endif %}
 {% if this.proxy is defined and this.proxy.headers is defined %}
 {{ '\n' }}{{ ngx_headers(this.proxy.headers) }}
-{% endif %}
+{%- endif %}
+{% if this.locations is defined %}
+
 {% for location in this.locations %}
 {{ ngx_location(location) }}
 {% endfor %}
+{% endif %}
 {% endmacro %}
 
 {%- set use_ssl = site.ssl.enabled is not defined or site.ssl.enabled -%}
