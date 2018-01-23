@@ -88,6 +88,10 @@ client_max_body_size {{ this.client_max_body_size }};
 {% if this.gzip is defined %}
 gzip {{ ngx_value(this.gzip) }};
 {% endif %}
+{% if this.htpasswd is defined %}
+auth_basic "Authentication required";
+auth_basic_user_file "{{ this.htpasswd }}";
+{% endif %}
 {% if this.proxy is defined and this.proxy.headers is defined %}
 {{ '\n' }}{{ ngx_headers(this.proxy.headers) }}
 {%- endif %}
