@@ -90,6 +90,22 @@ location{{ match_op }} {{ loc.location }} {
 {%- endfor %}
 {% endif %}
 }
+{% endmacro -%}
+
+{#- render directives applicable to both server and location -#}
+{% macro ngx_block_content(this) %}
+{% if this.client_max_body_size is defined %}
+client_max_body_size {{ this.client_max_body_size }};
+{% endif %}
+{% if this.gzip is defined %}
+gzip {{ ngx_value(this.gzip) }};
+{% endif %}
+{% if this.proxy is defined and this.proxy.headers is defined %}
+{{ '\n' }}{{ ngx_headers(this.proxy.headers) }}
+{% endif %}
+{% for location in this.locations %}
+{{ ngx_location(location) }}
+{% endfor %}
 {% endmacro %}
 
 {%- set use_ssl = site.ssl.enabled is not defined or site.ssl.enabled -%}
@@ -118,20 +134,4 @@ location{{ match_op }} {{ loc.location }} {
 {{ ngx_site(server_name, false, ngx_permanent_redirect(true, '$http_host')) }}
 {%- endif %}
 
-{% set content %}
-{% if site.client_max_body_size is defined %}
-client_max_body_size {{ site.client_max_body_size }};
-{% endif %}
-{% if site.gzip is defined %}
-gzip {{ ngx_value(site.gzip) }};
-{% endif %}
-{% if site.proxy is defined and site.proxy.headers is defined %}
-
-{{ ngx_headers(site.proxy.headers) }}
-{% endif %}
-{% for loc in site.locations %}
-{{ ngx_location(loc) }}
-{% endfor %}
-{% endset %}
-
-{{ ngx_site(server_name, site.ssl.enabled, content) }}
+{{ ngx_site(server_name, site.ssl.enabled, ngx_block_content(site)) }}
