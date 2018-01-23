@@ -2,9 +2,14 @@
 {%- macro ngx_site(server_name, ssl, content) %}
 server {
     server_name {{ server_name }};
-    listen {{ ssl | ternary(443, 80) }};
-    {% if ssl -%}
+
+    listen {{ ssl.enabled | default(true) | ternary(443, 80) }};
+    {% if ssl.enabled | default(true) -%}
     ssl on;
+    {% if ssl.key is defined or ssl.cert is defined -%}
+    ssl_certificate {{ ssl.cert }};
+    ssl_certificate_key {{ ssl.key }};
+    {% endif %}
     {% endif %}
 
     {{ content | indent }}
@@ -101,9 +106,7 @@ auth_basic_user_file "{{ this.htpasswd }}";
 {{ ngx_location(location) }}
 {% endfor %}
 {% endif %}
-{% endmacro %}
-
-{%- set use_ssl = site.ssl.enabled is not defined or site.ssl.enabled -%}
+{% endmacro -%}
 
 {# redirects from other domains to the primary domain #}
 {% if site.redirect_from is defined %}
@@ -112,12 +115,12 @@ auth_basic_user_file "{{ this.htpasswd }}";
 {%- endset -%}
 
 {# redirect to the primary domain (plaintext) #}
-{% if use_ssl %}
-{{ ngx_site(other_names, false, ngx_permanent_redirect(true, site.names[0])) }}{{ '\n' }}
+{% if site.ssl.enabled is not defined or site.ssl.enabled %}
+{{ ngx_site(other_names, none, ngx_permanent_redirect(true, site.names[0])) }}{{ '\n' }}
 {%- endif -%}
 
 {# redirect to the primary domain #}
-{{ ngx_site(other_names, use_ssl, ngx_permanent_redirect(true, site.names[0])) }}
+{{ ngx_site(other_names, site.ssl, ngx_permanent_redirect(true, site.names[0])) }}
 {% endif %}
 
 {%- set server_name -%}
@@ -125,8 +128,8 @@ auth_basic_user_file "{{ this.htpasswd }}";
 {%- endset -%}
 
 {# redirect from plaintext to SSL #}
-{% if use_ssl %}
-{{ ngx_site(server_name, false, ngx_permanent_redirect(true, '$http_host')) }}
+{% if site.ssl.enabled is not defined or site.ssl.enabled %}
+{{ ngx_site(server_name, none, ngx_permanent_redirect(true, '$http_host')) }}
 {%- endif %}
 
-{{ ngx_site(server_name, site.ssl.enabled, ngx_block_content(site)) }}
+{{ ngx_site(server_name, site.ssl, ngx_block_content(site)) }}
