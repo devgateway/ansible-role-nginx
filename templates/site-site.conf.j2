@@ -1,4 +1,4 @@
-{# server block #}
+{#- server block -#}
 {%- macro ngx_site(server_name, ssl, content) %}
 server {
     server_name {{ server_name }};
@@ -11,8 +11,8 @@ server {
 }
 {% endmacro -%}
 
-{# format directive value as array, boolean, or literal #}
-{%- macro ngx_value(value) -%}
+{#- format directive value as array, boolean, or literal -#}
+{% macro ngx_value(value) -%}
   {%- if value is sequence and value is not string -%}
     {{ value | sort | join(' ') }}
   {%- elif value is sameas true -%}
@@ -22,22 +22,22 @@ server {
   {%- else -%}
     {{ value }}
   {%- endif -%}
+{% endmacro -%}
+
+{#- redirect to a given host -#}
+{% macro ngx_permanent_redirect(ssl, host) -%}
+  return 301 {{ ssl | ternary('https', 'http') }}://{{ host }}$request_uri;
 {%- endmacro -%}
 
-{# redirect to a given host #}
-{%- macro ngx_permanent_redirect(ssl, host) -%}
-return 301 {{ ssl | ternary('https', 'http') }}://{{ host }}$request_uri;
-{%- endmacro -%}
-
-{# format a directive and key-value arguments #}
-{%- macro ngx_directive_dict(directive, values) -%}
+{#- format a directive and key-value arguments -#}
+{% macro ngx_directive_dict(directive, values) %}
 {% for key, value in values | dictsort %}
 {{ directive }} {{ key }} {{ ngx_value(value) }};
 {% endfor %}
-{%- endmacro -%}
+{% endmacro -%}
 
-{# format a multi-valued directive, or several single-valued directives #}
-{%- macro ngx_directive_list(directive, values, multiple) -%}
+{#- format a multi-valued directive, or several single-valued directives -#}
+{% macro ngx_directive_list(directive, values, multiple) %}
 {% if multiple %}
 {{ directive }} {{ values | sort | join(' ') }};
 {% else %}
@@ -45,27 +45,25 @@ return 301 {{ ssl | ternary('https', 'http') }}://{{ host }}$request_uri;
 {{ directive }} {{ ngx_value(value) }};
 {% endfor %}
 {% endif %}
-{%- endmacro -%}
+{% endmacro -%}
 
-{%- macro ngx_headers(cfg) %}
-{%- if cfg.set is defined %}
+{% macro ngx_headers(cfg) %}
+{% if cfg.set is defined %}
 # pass headers to the backend
 {{ ngx_directive_dict('proxy_set_header', cfg.set) }}
-{% endif -%}
-
-{%- if cfg.ignore is defined %}
+{% endif %}
+{% if cfg.ignore is defined %}
 # ignore headers produced by the backend
 {{ ngx_directive_list('proxy_ignore_headers', cfg.ignore, true) }}
 {% endif %}
-
-{%- if cfg.hide is defined %}
+{% if cfg.hide is defined %}
 # hide headers produced by the backend
-{{ ngx_directive_list('proxy_hide_header', cfg.ignore, false) }}
-{% endif -%}
-{%- endmacro -%}
+{{ ngx_directive_list('proxy_hide_header', cfg.hide, false) }}
+{% endif %}
+{% endmacro -%}
 
-{%- macro ngx_location(loc) %}
-{% set match_op %}
+{% macro ngx_location(loc) %}
+{%- set match_op %}
 {% if loc.match is not defined or loc.match == 'prefix' %}
 {% elif loc.match == 'exact' %}
  =
@@ -78,26 +76,21 @@ return 301 {{ ssl | ternary('https', 'http') }}://{{ host }}$request_uri;
 {%- endif %}
 {% endset %}
 location{{ match_op }} {{ loc.location }} {
-    {{ ngx_location_content(loc) | indent }}
-}
-{% endmacro -%}
-
-{% macro ngx_location_content(loc) %}
 {% if loc.proxy is defined %}
 {% if loc.proxy.headers is defined %}
-{{ ngx_headers(loc.proxy.headers) }}
-proxy_pass {{ loc.proxy.pass }};
-{% else %}
-
+    {{ ngx_headers(loc.proxy.headers) | indent }}
+    proxy_pass {{ loc.proxy.pass }};
 {% endif %}
 {% else %}
 {% endif %}
 {% if loc.locations is defined %}
+
 {% for subloc in loc.locations %}
-{{ ngx_location(subloc) }}
-{% endfor %}
+    {{ ngx_location(subloc) | indent }}
+{%- endfor %}
 {% endif %}
-{%- endmacro -%}
+}
+{% endmacro %}
 
 {%- set use_ssl = site.ssl.enabled is not defined or site.ssl.enabled -%}
 
@@ -125,23 +118,20 @@ proxy_pass {{ loc.proxy.pass }};
 {{ ngx_site(server_name, false, ngx_permanent_redirect(true, '$http_host')) }}
 {%- endif %}
 
-{%- set content -%}
-
-{% if site.client_max_body_size is defined -%}
-  client_max_body_size {{ site.client_max_body_size }};
+{% set content %}
+{% if site.client_max_body_size is defined %}
+client_max_body_size {{ site.client_max_body_size }};
 {% endif %}
-
-{% if site.gzip is defined -%}
-  gzip {{ ngx_value(site.gzip) }};
+{% if site.gzip is defined %}
+gzip {{ ngx_value(site.gzip) }};
 {% endif %}
-
 {% if site.proxy is defined and site.proxy.headers is defined %}
-{{ ngx_headers(site.proxy.headers) }}
-{%- endif -%}
 
-{%- for loc in site.locations %}
+{{ ngx_headers(site.proxy.headers) }}
+{% endif %}
+{% for loc in site.locations %}
 {{ ngx_location(loc) }}
 {% endfor %}
-{%- endset %}
+{% endset %}
 
 {{ ngx_site(server_name, site.ssl.enabled, content) }}
