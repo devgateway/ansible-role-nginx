@@ -1,5 +1,5 @@
 ---
-- name: Site {{ site.names[0] }}
+- name: Configure site
   template:
     src: site.conf.j2
     dest: "{{ ngxs_config_dir }}/{{ site.names[0] }}.conf"
