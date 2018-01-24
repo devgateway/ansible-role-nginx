@@ -111,6 +111,18 @@ auth_basic_user_file "{{ this.htpasswd }}";
 
 {{ ngx_headers(this.proxy.headers) }}
 {%- endif %}
+{% if this.cache is defined %}
+{% if this.cache.enabled | default(true) %}
+
+proxy_cache {{ this.cache.id }};
+proxy_cache_valid {{ this.cache.duration }};
+{% if this.cache.key is defined %}
+proxy_cache_key "{{ this.cache.key }}";
+{% endif %}
+{% else %}
+proxy_cache off;
+{%- endif %}
+{% endif %}
 {% if this.locations is defined %}
 
 {% for location in this.locations %}
