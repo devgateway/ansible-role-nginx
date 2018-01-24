@@ -1,15 +1,15 @@
 {#- server block -#}
-{%- macro ngx_site(server_name, ssl, content) %}
+{%- macro ngx_site(names, content, ssl = true, key = none, cert = none) %}
 {% filter indent %}
 server {
-server_name {{ server_name }};
+server_name {{ names }};
 
-listen {{ ssl.enabled | default(true) | ternary(443, 80) }};
-{% if ssl.enabled | default(true) %}
+listen {{ ssl | ternary(443, 80) }};
+{% if ssl %}
 ssl on;
-{% if ssl.key is defined or ssl.cert is defined %}
-ssl_certificate {{ ssl.cert }};
-ssl_certificate_key {{ ssl.key }};
+{% if key is not none or cert is not none %}
+ssl_certificate {{ cert }};
+ssl_certificate_key {{ key }};
 {% endif %}
 {% endif %}
 
@@ -173,26 +173,40 @@ max_size={{ cache.max_size }}
 
 {# redirects from other domains to the primary domain #}
 {% if site.redirect_from is defined %}
-{% set other_names %}
+{% set redirect_names %}
 {{ site.redirect_from | sort | join(' ') }}
 {%- endset -%}
 
 {# redirect to the primary domain (plaintext) #}
-{% if site.ssl.enabled is not defined or site.ssl.enabled %}
-{{ ngx_site(other_names, {'enabled': false}, ngx_permanent_redirect(true, site.names[0])) }}
+{% if site.ssl | default(true) %}
+{{ ngx_site(
+  names = redirect_names,
+  content = ngx_permanent_redirect(true, site.names[0]),
+  ssl = false
+  ) }}
 {% endif -%}
 
 {# redirect to the primary domain #}
-{{ ngx_site(other_names, site.ssl, ngx_permanent_redirect(true, site.names[0])) }}
+{{ ngx_site(
+  names = redirect_names,
+  content = ngx_permanent_redirect(true, site.names[0]),
+  ssl = site.ssl | default(true),
+  key = site.ssl_key | default(none),
+  cert = site.ssl_cert | default(none)
+) }}
 {% endif %}
 
-{%- set server_name %}
+{%- set canonical_names %}
 {{ site.names | sort | join(' ') }}
 {%- endset -%}
 
 {# redirect from plaintext to SSL #}
-{% if site.ssl.enabled is not defined or site.ssl.enabled %}
-{{ ngx_site(server_name, {'enabled': false}, ngx_permanent_redirect(true, '$http_host')) }}
+{% if site.ssl | default(true) %}
+{{ ngx_site(
+  names = canonical_names,
+  content = ngx_permanent_redirect(true, '$http_host'),
+  ssl = false
+  ) }}
 {%- endif %}
 
 {%- set main_content -%}
@@ -205,4 +219,10 @@ location = /robots.txt {
 {% endif %}
 {% endset %}
 
-{{ ngx_site(server_name, site.ssl, main_content) }}
+{{ ngx_site(
+  names = canonical_names,
+  content = main_content,
+  ssl = site.ssl | default(true),
+  key = site.ssl_key | default(none),
+  cert = site.ssl_cert | default(none)
+) }}
