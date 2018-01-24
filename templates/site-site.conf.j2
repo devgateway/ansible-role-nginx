@@ -108,7 +108,8 @@ auth_basic "Authentication required";
 auth_basic_user_file "{{ this.htpasswd }}";
 {% endif %}
 {% if this.proxy is defined and this.proxy.headers is defined %}
-{{ '\n' }}{{ ngx_headers(this.proxy.headers) }}
+
+{{ ngx_headers(this.proxy.headers) }}
 {%- endif %}
 {% if this.locations is defined %}
 
