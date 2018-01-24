@@ -4,7 +4,45 @@ Configure Nginx proxying for a site. This role only creates one config in `/etc/
 
 ## Role Variables
 
-### ``
+### Optional
+
+#### `ngxs_config_dir`
+
+Nginx configuration include directory.
+
+Default: `/etc/nginx/conf.d`
+
+#### `ngxs_cache_dir`
+
+Root directory for Nginx caches
+
+Default on all platforms: `/var/cache/nginx`
+
+#### `ngxs_cache_dir_owner`, `ngxs_cache_dir_group`
+
+Owner and group of the cache directory.
+
+Defaults:
+
+* RedHat: `nginx`
+
+* Debian: `www-data`
+
+### Optional
+
+Only one dictionary is required: `site`. The following section describes possible members if this dictionary.
+
+### Members of `site` dictionary
+
+The following members can only appear in `site` dictionary, but not locations (see below).
+
+#### `names`
+
+A list of [domains, wildcards, or regexes](http://nginx.org/en/docs/http/ngx_http_core_module.html#server_name), by which server will respond. Those are canonical names of the site causing Nginx to serve site content, not redirect elsewhere. The first name in the list will be considered the *primary* name, see the next member.
+
+#### `redirect_from`
+
+A list of [domains, wildcards, or regexes](http://nginx.org/en/docs/http/ngx_http_core_module.html#server_name), which will return permanent redirect to the *primary* name as noted above.
 
 ## Example Playbook
 
