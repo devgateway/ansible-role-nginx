@@ -199,6 +199,7 @@ max_size={{ cache.max_size }}
 {{ ngx_block_content(site) }}
 {%- if not (site.allow_robots | default(true)) %}
 location = /robots.txt {
+    expires 1d;
     return 200 "User-Agent: *\nDisallow: /\n";
 }
 {% endif %}
