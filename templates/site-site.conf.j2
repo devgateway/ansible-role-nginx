@@ -1,18 +1,20 @@
 {#- server block -#}
 {%- macro ngx_site(server_name, ssl, content) %}
+{% filter indent %}
 server {
-    server_name {{ server_name }};
+server_name {{ server_name }};
 
-    listen {{ ssl.enabled | default(true) | ternary(443, 80) }};
-    {% if ssl.enabled | default(true) -%}
-    ssl on;
-    {% if ssl.key is defined or ssl.cert is defined -%}
-    ssl_certificate {{ ssl.cert }};
-    ssl_certificate_key {{ ssl.key }};
-    {% endif %}
-    {% endif %}
+listen {{ ssl.enabled | default(true) | ternary(443, 80) }};
+{% if ssl.enabled | default(true) %}
+ssl on;
+{% if ssl.key is defined or ssl.cert is defined %}
+ssl_certificate {{ ssl.cert }};
+ssl_certificate_key {{ ssl.key }};
+{% endif %}
+{% endif %}
 
-    {{ content | indent }}
+{{ content }}
+{% endfilter %}
 }
 {% endmacro -%}
 
@@ -80,18 +82,20 @@ server {
 {% set content %}
 {{ ngx_block_content(loc) }}
 {%- endset %}
+{% filter indent %}
 location{{ match_op }} {{ loc.location }} {
 {% if content %}
-    {{ content | indent }}
+{{ content }}
 {% endif %}
 {% if loc.proxy is defined %}
 {% if loc.proxy.pass is defined %}
-    proxy_pass {{ loc.proxy.pass }};
+proxy_pass {{ loc.proxy.pass }};
 {% endif %}
 {% if loc.proxy.redirect is defined %}
-    proxy_redirect {{ loc.proxy.redirect }};
+proxy_redirect {{ loc.proxy.redirect }};
 {% endif %}
 {% endif %}
+{% endfilter %}
 }
 {% endmacro -%}
 
@@ -125,8 +129,8 @@ proxy_cache off;
 {% endif %}
 {% if this.cors is defined %}
 
+{% filter indent %}
 if ($request_method = 'OPTIONS') {
-{% filter indent(4, true) %}
 add_header Access-Control-Allow-Origin "{{ this.cors.origin | default('*') }}";
 {% if this.cors.max_age is defined %}
 add_header Access-Control-Max-Age {{ this.cors.max_age }};
@@ -169,8 +173,8 @@ max_size={{ cache.max_size }}
 
 {# redirects from other domains to the primary domain #}
 {% if site.redirect_from is defined %}
-{% set other_names -%}
-  {{ site.redirect_from | sort | join(' ') }}
+{% set other_names %}
+{{ site.redirect_from | sort | join(' ') }}
 {%- endset -%}
 
 {# redirect to the primary domain (plaintext) #}
@@ -182,8 +186,8 @@ max_size={{ cache.max_size }}
 {{ ngx_site(other_names, site.ssl, ngx_permanent_redirect(true, site.names[0])) }}
 {% endif %}
 
-{%- set server_name -%}
-  {{ site.names | sort | join(' ') }}
+{%- set server_name %}
+{{ site.names | sort | join(' ') }}
 {%- endset -%}
 
 {# redirect from plaintext to SSL #}
