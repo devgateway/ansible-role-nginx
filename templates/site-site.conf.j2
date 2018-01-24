@@ -54,15 +54,12 @@ server {
 
 {% macro ngx_headers(cfg) %}
 {% if cfg.set is defined %}
-# pass headers to the backend
 {{ ngx_directive_dict('proxy_set_header', cfg.set) }}
 {% endif %}
 {% if cfg.ignore is defined %}
-# ignore headers produced by the backend
 {{ ngx_directive_list('proxy_ignore_headers', cfg.ignore, true) }}
 {% endif %}
 {% if cfg.hide is defined %}
-# hide headers produced by the backend
 {{ ngx_directive_list('proxy_hide_header', cfg.hide, false) }}
 {% endif %}
 {% endmacro -%}
