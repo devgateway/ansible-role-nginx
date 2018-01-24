@@ -129,8 +129,8 @@ auth_basic_user_file "{{ this.htpasswd }}";
 
 {# redirect to the primary domain (plaintext) #}
 {% if site.ssl.enabled is not defined or site.ssl.enabled %}
-{{ ngx_site(other_names, {'enabled': false}, ngx_permanent_redirect(true, site.names[0])) }}{{ '\n' }}
-{%- endif -%}
+{{ ngx_site(other_names, {'enabled': false}, ngx_permanent_redirect(true, site.names[0])) }}
+{% endif -%}
 
 {# redirect to the primary domain #}
 {{ ngx_site(other_names, site.ssl, ngx_permanent_redirect(true, site.names[0])) }}
