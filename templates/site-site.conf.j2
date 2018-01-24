@@ -123,6 +123,25 @@ proxy_cache_key "{{ this.cache.key }}";
 proxy_cache off;
 {%- endif %}
 {% endif %}
+{% if this.cors is defined %}
+
+if ($request_method = 'OPTIONS') {
+{% filter indent(4, true) %}
+add_header Access-Control-Allow-Origin "{{ this.cors.origin | default('*') }}";
+{% if this.cors.max_age is defined %}
+add_header Access-Control-Max-Age {{ this.cors.max_age }};
+{% endif %}
+{% if this.cors.methods is defined %}
+add_header Access-Control-Allow-Methods '{{ this.cors.methods | sort | join(', ') | upper }}';
+{% endif %}
+{% if this.cors.headers is defined %}
+add_header Access-Control-Allow-Headers '{{ this.cors.headers | sort | join(', ') }}';
+{% endif %}
+add_header Content-Length 0;
+return 200;
+{% endfilter %}
+}
+{% endif %}
 {% if this.locations is defined %}
 
 {% for location in this.locations %}
