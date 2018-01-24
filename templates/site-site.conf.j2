@@ -80,8 +80,21 @@ server {
  ^~
 {%- endif %}
 {% endset %}
+{% set content %}
+{{ ngx_block_content(loc) }}
+{%- endset %}
 location{{ match_op }} {{ loc.location }} {
-    {{ ngx_block_content(loc) | indent }}
+{% if content %}
+    {{ content | indent }}
+{% endif %}
+{% if loc.proxy is defined %}
+{% if loc.proxy.pass is defined %}
+    proxy_pass {{ loc.proxy.pass }};
+{% endif %}
+{% if loc.proxy.redirect is defined %}
+    proxy_redirect {{ loc.proxy.redirect }};
+{% endif %}
+{% endif %}
 }
 {% endmacro -%}
 
@@ -139,6 +152,6 @@ location = /robots.txt {
     return 200 "User-Agent: *\nDisallow: /\n";
 }
 {% endif %}
-{%- endset -%}
+{% endset %}
 
 {{ ngx_site(server_name, site.ssl, main_content) }}
