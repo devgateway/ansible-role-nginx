@@ -121,6 +121,23 @@ auth_basic_user_file "{{ this.htpasswd }}";
 {% endif %}
 {% endmacro -%}
 
+{% if site.caches is defined %}
+{% for cache in site.caches %}
+{% set proxy_cache_path %}
+proxy_cache_path
+"{{ ngxs_cache_dir }}/{{ cache.id }}"
+levels=1:2
+keys_zone={{ cache.id }}:{{ (cache.max_keys / 8000.0) | round(0, 'ceil') | int }}m
+{% if cache.inactive is defined %}
+inactive={{ cache.inactive }}
+{% endif %}
+max_size={{ cache.max_size }}
+{%- endset %}
+{{ proxy_cache_path | replace('\n', ' ') }};
+{% endfor %}
+
+{% endif -%}
+
 {# redirects from other domains to the primary domain #}
 {% if site.redirect_from is defined %}
 {% set other_names -%}

@@ -1,2 +1,3 @@
 ---
 ngxs_config_dir: /etc/nginx/conf.d
+ngxs_cache_dir: /var/cache/nginx
