@@ -22,7 +22,7 @@ Required. A list of [domains, wildcards, or regexes](http://nginx.org/en/docs/ht
 
 Optional. Turns SSL on or off.
 
-Default: true.
+Default: true
 
 #### `ssl_key` and `ssl_cert`
 
@@ -63,6 +63,50 @@ Optional. Matching operator of the location, e.g. `=` or `~*`. Remember YAML quo
 Default: "" (empty string, or prefix location match)
 
 ### Members Applicable to Both `site` and Locations
+
+#### `gzip`
+
+Optional. Controls [compression](http://nginx.org/en/docs/http/ngx_http_gzip_module.html#gzip) at server or location level. If undefined, no directive will be added (inherit from parent block). Note that other GZIP settings are not managed by this role, and should be inherited from `http` block.
+
+Default: undefined
+
+#### `client_max_body_size`
+
+Optional. Sets the [maximum size of request body](http://nginx.org/en/docs/http/ngx_http_core_module.html#client_max_body_size) in Nginx units, e.g. *1m*.
+
+Default: undefined
+
+#### `proxy`
+
+Optional. A dictionary controlling proxy behavior. Possible members described below.
+
+##### `proxy.pass`
+
+Optional. Inserts a [`proxy_pass` directive](http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_pass). Type: string.
+
+##### `proxy.redirect`
+
+Optional. Inserts a [`proxy_redirect` directive](http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_redirect). Type: string.
+
+##### `proxy.headers`
+
+Optional. A dictionary with three optional members:
+
+* `set` - a dictionary where keys are header names. Inserts [`proxy_set_header` directives](http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_set_header), i.e. headers sent to the backend in each request.
+
+* `hide` - a list of header names removed from the backend response, and not passed to the client. Produces [`proxy_hide_header` directives](http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_hide_header).
+
+* `ignore` - a list of header names; inserts a [`proxy_ignore_headers` directive](http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_ignore_headers) to disable certain processing logic.
+
+#### `cache`
+
+Optional. Controls caching at the block level and below. If undefined, no caching directives will be produced. Possible members:
+
+* `enabled` - boolean, defaults to *true*. Inserts [`proxy_cache`](http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache) and [`proxy_cache_valid`](http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache_valid) directives. If set to *true*, then the members `id` and `duration` are required.
+
+* `id` - string, required if `enabled` is *true*. Uses the cache zone with this name.
+
+* `duration` - caching time in Nginx units; produces the [`proxy_cache_valid` directive](http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache_valid). May be used to configure response code as well: `200 302 10m`.
 
 ### Optional Variables
 
