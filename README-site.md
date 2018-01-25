@@ -20,11 +20,31 @@ Required. A list of [domains, wildcards, or regexes](http://nginx.org/en/docs/ht
 
 #### `ssl`
 
-Optional. Turns SSL on or off. Default: true.
+Optional. Turns SSL on or off.
+
+Default: true.
 
 #### `ssl_key` and `ssl_cert`
 
 Optional, but must be both present or absent. Set [`ssl_certificate_key`](http://nginx.org/en/docs/http/ngx_http_ssl_module.html#ssl_certificate_key) and [`ssl_certificate`](http://nginx.org/en/docs/http/ngx_http_ssl_module.html#ssl_certificate), respectively.
+
+#### `allow_robots`
+
+Optional. If false, will generate a location for `/robots.txt` that disallows crawling to all user agents.
+
+Default: true
+
+#### `caches`
+
+Optional. A list of dictionaries, defining [cache zones](http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache_path). Members of each dictionary:
+
+* `id` - required, defines the name of the key zone; cacheable locations will refer to caches by this field.
+
+* `max_keys` - required, estimated number of keys in the zone; used to calculate zone size: "one megabyte zone can store about 8 thousand keys".
+
+* `max_size` - optional, maximum size of cache in Nginx units (e.g. *5g*).
+
+* `inactive` - optional, maximum lifetime of valid cache objects, that don't get accessed, in Nginx units (e.g. *4h*).
 
 ### Optional Variables
 
