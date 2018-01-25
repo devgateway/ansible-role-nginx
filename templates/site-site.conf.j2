@@ -143,6 +143,7 @@ return 200;
 {% endif %}
 {% endmacro -%}
 
+{# define caches at http level #}
 {% if site.caches is defined %}
 {% for cache in site.caches %}
 {% set proxy_cache_path %}
@@ -159,6 +160,22 @@ max_size={{ cache.max_size }}
 {%- endset %}
 {{ proxy_cache_path | replace('\n', ' ') }};
 {% endfor %}
+
+{% endif -%}
+
+{# define the referrer spam map #}
+{% if site.referrer_spammers is defined %}
+{# make sure the var name doesn't conflict between sites #}
+{% set ref_spam_var = 'spam_ref_' ~ (site.names[0] | hash('sha1')) %}
+{% filter indent %}
+map $http_referer ${{ ref_spam_var }} {
+hostnames;
+default 0;
+{% for spammer in site.referrer_spammers %}
+.{{ spammer }} 1;
+{% endfor %}
+{% endfilter %}
+}
 
 {% endif -%}
 
@@ -213,6 +230,12 @@ max_size={{ cache.max_size }}
 location = /robots.txt {
     expires 1d;
     return 200 "User-Agent: *\nDisallow: /\n";
+}
+{% endif %}
+{% if site.referrer_spammers is defined %}
+
+if (${{ ref_spam_var }}) {
+    return 403;
 }
 {% endif %}
 {% endset %}
