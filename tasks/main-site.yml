@@ -2,7 +2,14 @@
 - name: Configure site
   template:
     src: site.conf.j2
-    dest: "{{ ngxs_config_dir }}/{{ site.names[0] }}.conf"
+    dest: |-
+      {{ ngxs_config_dir }}/
+      {%- if site.names[0][0] == '.' %}
+      {{ site.names[0] | replace('.', '', 1) }}
+      {%- else %}
+      {{ site.names[0] }}
+      {%- endif -%}
+      .conf
 
 - name: Create cache directories
   file:

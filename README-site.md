@@ -12,7 +12,7 @@ The following members can only appear in `site` dictionary, but not locations (s
 
 #### `names`
 
-Required. A list of [domains, wildcards, or regexes](http://nginx.org/en/docs/http/ngx_http_core_module.html#server_name), by which server will respond. Those are canonical names of the site causing Nginx to serve site content, not redirect elsewhere. The first name in the list will be considered the *primary* name, see the next member.
+Required. A list of [domains, wildcards, or regexes](http://nginx.org/en/docs/http/ngx_http_core_module.html#server_name), by which server will respond. Those are canonical names of the site causing Nginx to serve site content, not redirect elsewhere. The first name in the list will be considered the *primary* name, see the next member. Primary name may start with a dot: `.example.org`.
 
 #### `redirect_from`
 
@@ -178,9 +178,8 @@ Defaults:
           vars:
             site:
               names:
-                - customers.example.org
+                - .customers.example.org
               redirect_from:
-                - www.customers.example.org
                 - .clients.example.org
                 - ~(beta|prod)\.example\.(org|net)$
               ssl: true
