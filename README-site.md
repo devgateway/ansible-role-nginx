@@ -46,6 +46,24 @@ Optional. A list of dictionaries, defining [cache zones](http://nginx.org/en/doc
 
 * `inactive` - optional, maximum lifetime of valid cache objects, that don't get accessed, in Nginx units (e.g. *4h*).
 
+#### `locations`
+
+Optional. A list of locations as dictionaries which can be nested infinitely (limits of the Universe still apply).
+
+### Members Applicable Only to Locations
+
+#### `location`
+
+Required. [The URI of the location](http://nginx.org/en/docs/http/ngx_http_core_module.html#location), e.g. `/` or `\.jpe?g$`. Remember to properly escape your regexes for the YAML parser.
+
+#### `operator`
+
+Optional. Matching operator of the location, e.g. `=` or `~*`. Remember YAML quoting.
+
+Default: "" (empty string, or prefix location match)
+
+### Members Applicable to Both `site` and Locations
+
 ### Optional Variables
 
 #### `ngxs_config_dir`
