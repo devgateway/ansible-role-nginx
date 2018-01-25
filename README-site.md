@@ -26,7 +26,7 @@ Default: true.
 
 #### `ssl_key` and `ssl_cert`
 
-Optional, but must be both present or absent. Set [`ssl_certificate_key`](http://nginx.org/en/docs/http/ngx_http_ssl_module.html#ssl_certificate_key) and [`ssl_certificate`](http://nginx.org/en/docs/http/ngx_http_ssl_module.html#ssl_certificate), respectively.
+Optional, but both must be either present or absent. Set [`ssl_certificate_key`](http://nginx.org/en/docs/http/ngx_http_ssl_module.html#ssl_certificate_key) and [`ssl_certificate`](http://nginx.org/en/docs/http/ngx_http_ssl_module.html#ssl_certificate), respectively.
 
 #### `allow_robots`
 
