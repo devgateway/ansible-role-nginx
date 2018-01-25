@@ -148,8 +148,102 @@ Defaults:
 
 * Debian: `www-data`
 
-## Example Playbook
+## Example Playbook: Simple Site
 
+    ---
+    - hosts: nginx-prod
+      tasks:
+        - name: Configure a simple site
+          include_role:
+            name: devgateway.nginx-proxied-site
+          vars:
+            site:
+              names:
+                - info.example.net
+              redirect_from:
+                - information.example.net
+              locations:
+                - location: /
+                  proxy:
+                    pass: http://tomcat:8081/info
+
+## Example Playbook: Complex Site
+
+    ---
+    - hosts: nginx-prod
+      tasks:
+        - name: Configure a complex site
+          include_role:
+            name: devgateway.nginx-proxied-site
+          vars:
+            site:
+              names:
+                - customers.example.org
+              redirect_from:
+                - www.customers.example.org
+                - .clients.example.org
+                - ~(beta|prod)\.example\.(org|net)$
+              ssl: true
+              ssl_key: /etc/pki/tls/private/site.pem
+              ssl_cert: /etc/pki/tls/certs/site.crt
+              allow_robots: false
+              caches:
+                - id: java
+                  max_keys: 160000
+                  max_size: 1g
+                  inactive: 1h
+              client_max_body_size: 24m
+              gzip: true
+              proxy:
+                headers:
+                  set:
+                    Host: $http_host
+                    X-Real-IP: $remote_addr
+                    X-Forwarded-For: $proxy_add_x_forwarded_for
+                    X-Forwarded-Proto: $scheme
+                  ignore:
+                    - Set-Cookie
+                    - Vary
+                  hide:
+                    - X-AMZ-Request-ID
+              locations:
+                - location: /
+                  proxy:
+                    pass: http://tomcat:8080/foo
+                    redirect: http://$proxy_host/foo $scheme://$server_name
+                    headers:
+                      set:
+                        X-Secure: very
+                  locations:
+                    - location: /widgets
+                      cors:
+                        max_age: 1728000
+                        methods:
+                          - GET
+                          - POST
+                          - PUT
+                          - DELETE
+                          - OPTIONS
+                        headers:
+                          - X-Requested-With
+                          - X-HTTP-Method-Override
+                          - Content-Type
+                          - Accept
+                          - Origin
+                      cache:
+                        id: java
+                        duration: 1h
+                        key: $request_uri
+                      locations:
+                        - location: /widgets/update.do
+                          operator: "="
+                          cache:
+                            enabled: false
+                - location: /ci
+                  htpasswd: jenkins.txt
+                  proxy:
+                    pass: http://build:8080/jenkins/
+                    redirect: http://$proxy_host/jenkins $scheme://$server_name/ci
 
 ## License
 
