@@ -67,23 +67,12 @@ ssl_certificate_key {{ key }};
 {% endmacro -%}
 
 {% macro ngx_location(loc) %}
-{%- set match_op %}
-{% if loc.match is not defined or loc.match == 'prefix' %}
-{% elif loc.match == 'exact' %}
- =
-{%- elif loc.match == 'regex' %}
- ~
-{%- elif loc.match == 'iregex' %}
- ~*
-{%- else %}{# longest prefix, no regex: ^~ #}
- ^~
-{%- endif %}
-{% endset %}
+{% set oper = loc.operator | default('') %}
 {% set content %}
 {{ ngx_block_content(loc) }}
 {%- endset %}
 {% filter indent %}
-location{{ match_op }} {{ loc.location }} {
+location {{ oper }}{{ oper | ternary(' ', '') }}{{ loc.location }} {
 {% if content %}
 {{ content }}
 {% endif %}
