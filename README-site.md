@@ -34,6 +34,10 @@ Optional. If false, will generate a location for `/robots.txt` that disallows cr
 
 Default: true
 
+#### `referrer_spammers`
+
+Optional. A dictionary of domains (without leading dots) which are known [referral spammers](https://en.wikipedia.org/wiki/Referrer_spam). Requests with these referrers will receive 403 Forbidden status.
+
 #### `caches`
 
 Optional. A list of dictionaries, defining [cache zones](http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache_path). Members of each dictionary:
@@ -186,6 +190,8 @@ Defaults:
               ssl_key: /etc/pki/tls/private/site.pem
               ssl_cert: /etc/pki/tls/certs/site.crt
               allow_robots: false
+              referrer_spammers:
+                - mallory.example.net
               caches:
                 - id: java
                   max_keys: 160000
