@@ -76,6 +76,10 @@ Optional. Sets the [maximum size of request body](http://nginx.org/en/docs/http/
 
 Default: undefined
 
+#### `htpasswd`
+
+Optional. If set, defines the path to [htpasswd file](http://nginx.org/en/docs/http/ngx_http_auth_basic_module.html#auth_basic_user_file), absolute or relative to `/etc/nginx`. This enables HTTP Basic Authentication. Currently, there's no way to disable inherited (nested) Basic Auth setting with this role.
+
 #### `proxy`
 
 Optional. A dictionary controlling proxy behavior. Possible members described below.
@@ -107,6 +111,18 @@ Optional. Controls caching at the block level and below. If undefined, no cachin
 * `id` - string, required if `enabled` is *true*. Uses the cache zone with this name.
 
 * `duration` - caching time in Nginx units; produces the [`proxy_cache_valid` directive](http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache_valid). May be used to configure response code as well: `200 302 10m`.
+
+#### `cors`
+
+Optional. If defined, this dictionary generates an `if` block to handle [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) OPTIONS request. The dictionary members are:
+
+* `origin` - string, defaults to `*`; sets the value of [Access-Control-Allow-Origin](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin).
+
+* `max_age` - optional integer producing the [Access-Control-Max-Age header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Max-Age). If undefined, no header will be sent.
+
+* `methods` - an optional list of permitted methods for the [Access-Control-Allow-Methods header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Methods).
+
+* `headers` - an optional list of permitted headers, as in [Access-Control-Allow-Headers header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Headers).
 
 ### Optional Variables
 
