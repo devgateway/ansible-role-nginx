@@ -164,7 +164,9 @@ keys_zone={{ cache.id }}:{{ (cache.max_keys / 8000.0) | round(0, 'ceil') | int }
 {% if cache.inactive is defined %}
 inactive={{ cache.inactive }}
 {% endif %}
+{% if cache.inactive is defined %}
 max_size={{ cache.max_size }}
+{% endif %}
 {%- endset %}
 {{ proxy_cache_path | replace('\n', ' ') }};
 {% endfor %}
