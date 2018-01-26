@@ -116,15 +116,19 @@ proxy_cache off;
 
 {% filter indent %}
 if ($request_method = "OPTIONS") {
-add_header Access-Control-Allow-Origin "{{ this.cors.origin | default('*') }}";
-{% if this.cors.max_age is defined %}
-add_header Access-Control-Max-Age {{ this.cors.max_age }};
+{{ ngx_cors_header('Access-Control-Allow-Origin', this.cors.origin | default('*')) }}
+{% if this.cors.max_age is defined -%}
+  {{ ngx_cors_header('Access-Control-Max-Age', this.cors.max_age) }}
 {% endif %}
-{% if this.cors.methods is defined %}
-add_header Access-Control-Allow-Methods "{{ this.cors.methods | sort | join(', ') | upper }}";
+{% if this.cors.methods is defined -%}
+  {{ ngx_cors_header(
+      'Access-Control-Allow-Methods',
+      this.cors.methods | sort | join(', ') | upper
+    )
+  }}
 {% endif %}
-{% if this.cors.headers is defined %}
-add_header Access-Control-Allow-Headers "{{ this.cors.headers | sort | join(', ') }}";
+{% if this.cors.headers is defined -%}
+  {{ ngx_cors_header('Access-Control-Allow-Headers', this.cors.headers | sort | join(', ')) }}
 {% endif %}
 add_header Content-Length 0;
 return 200;
@@ -140,10 +144,19 @@ return 200;
     content = ngx_block_content(location),
     proxy = location.proxy | default(none),
     fastcgi = location.fastcgi | default(none)
-   )
+  )
 }}
 {% endfor %}
 {% endif %}
+{% endmacro -%}
+
+{% macro ngx_cors_header(header, value) -%}
+{{ ngx_directive(
+    'add_header',
+    header ~ ' "' ~ value ~ '"',
+    quote = false
+  )
+}}
 {% endmacro -%}
 
 {# define caches at http level #}
