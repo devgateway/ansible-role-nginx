@@ -1,8 +1,8 @@
 {#- server block -#}
-{%- macro ngx_site(names, content, ssl = true, key = none, cert = none) %}
+{%- macro ngx_server(names, content, ssl = true, key = none, cert = none) %}
 {% filter indent %}
 server {
-server_name {{ names }};
+server_name {{ names | sort | join(' ') }};
 
 listen {{ ssl | ternary(443, 80) }};
 {% if ssl %}
@@ -181,10 +181,6 @@ default 0;
 
 {# redirects from other domains to the primary domain #}
 {% if site.redirect_from is defined %}
-{% set redirect_names %}
-{{ site.redirect_from | sort | join(' ') }}
-{%- endset -%}
-
 {# don't use the leading dot in redirect, only in server_name #}
 {% if site.names[0][0] == '.' %}
 {% set primary_name = site.names[0] | replace('.', '', 1) %}
@@ -194,16 +190,16 @@ default 0;
 
 {# redirect to the primary domain (plaintext) #}
 {% if site.ssl | default(true) %}
-{{ ngx_site(
-  names = redirect_names,
+{{ ngx_server(
+  names = site.redirect_from,
   content = ngx_permanent_redirect(true, primary_name),
   ssl = false
   ) }}
 {% endif -%}
 
 {# redirect to the primary domain #}
-{{ ngx_site(
-  names = redirect_names,
+{{ ngx_server(
+  names = site.redirect_from,
   content = ngx_permanent_redirect(true, primary_name),
   ssl = site.ssl | default(true),
   key = site.ssl_key | default(none),
@@ -211,14 +207,10 @@ default 0;
 ) }}
 {% endif %}
 
-{%- set canonical_names %}
-{{ site.names | sort | join(' ') }}
-{%- endset -%}
-
 {# redirect from plaintext to SSL #}
 {% if site.ssl | default(true) %}
-{{ ngx_site(
-  names = canonical_names,
+{{ ngx_server(
+  names = site.names,
   content = ngx_permanent_redirect(true, '$http_host'),
   ssl = false
   ) }}
@@ -228,6 +220,7 @@ default 0;
 {{ ngx_block_content(site) }}
 {%- if not (site.allow_robots | default(true)) %}
 location = /robots.txt {
+    access_log off;
     expires 1d;
     return 200 "User-Agent: *\nDisallow: /\n";
 }
@@ -240,8 +233,8 @@ if (${{ ref_spam_var }}) {
 {% endif %}
 {% endset %}
 
-{{ ngx_site(
-  names = canonical_names,
+{{ ngx_server(
+  names = site.names,
   content = main_content,
   ssl = site.ssl | default(true),
   key = site.ssl_key | default(none),
