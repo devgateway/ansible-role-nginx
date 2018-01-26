@@ -66,22 +66,16 @@ ssl_certificate_key {{ key }};
 {% endif %}
 {% endmacro -%}
 
-{% macro ngx_location(loc) %}
-{% set oper = loc.operator | default('') %}
-{% set content %}
-{{ ngx_block_content(loc) }}
-{%- endset %}
+{% macro ngx_location(expr, content, operator = '', proxy = none, fastcgi = none) %}
 {% filter indent %}
-location {{ oper }}{{ oper | ternary(' ', '') }}{{ loc.location }} {
-{% if content %}
+location {{ operator }}{{ operator | ternary(' ', '') }}{{ expr }} {
 {{ content }}
+{% if proxy is not none %}
+{% if proxy.pass is defined %}
+proxy_pass {{ proxy.pass }};
 {% endif %}
-{% if loc.proxy is defined %}
-{% if loc.proxy.pass is defined %}
-proxy_pass {{ loc.proxy.pass }};
-{% endif %}
-{% if loc.proxy.redirect is defined %}
-proxy_redirect {{ loc.proxy.redirect }};
+{% if proxy.redirect is defined %}
+proxy_redirect {{ proxy.redirect }};
 {% endif %}
 {% endif %}
 {% endfilter %}
@@ -138,7 +132,14 @@ return 200;
 {% if this.locations is defined %}
 
 {% for location in this.locations %}
-{{ ngx_location(location) }}
+{{ ngx_location(
+    location.location,
+    operator = location.operator | default(''),
+    content = ngx_block_content(location),
+    proxy = location.proxy | default(none),
+    fastcgi = location.fastcgi | default(none)
+   )
+}}
 {% endfor %}
 {% endif %}
 {% endmacro -%}
