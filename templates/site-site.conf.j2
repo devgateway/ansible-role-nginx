@@ -2,14 +2,14 @@
 {%- macro ngx_server(names, content, ssl = true, key = none, cert = none) %}
 {% filter indent %}
 server {
-server_name {{ names | sort | join(' ') }};
+{{ ngx_directive('server_name', names) }}
 
-listen {{ ssl | ternary(443, 80) }};
+{{ ngx_directive('listen', ssl | ternary(443, 80)) }}
 {% if ssl %}
 ssl on;
 {% if key is not none or cert is not none %}
-ssl_certificate {{ cert }};
-ssl_certificate_key {{ key }};
+{{ ngx_directive('ssl_certificate', cert) }}
+{{ ngx_directive('ssl_certificate_key', key) }}
 {% endif %}
 {% endif %}
 
@@ -19,16 +19,31 @@ ssl_certificate_key {{ key }};
 {% endmacro -%}
 
 {#- format directive value as array, boolean, or literal -#}
-{% macro ngx_value(value) -%}
-  {%- if value is sequence and value is not string -%}
-    {{ value | sort | join(' ') }}
-  {%- elif value is sameas true -%}
-    on
-  {%- elif value is sameas false -%}
-    off
+{% macro ngx_directive(directive, value, multiple = true, quote = true) -%}
+  {%- if value is mapping %}
+    {%- for key, val in value | dictsort -%}
+      {{ directive }} {{ key }} {{ val }};{{ '\n' }}
+    {%- endfor %}
+  {%- elif value is sequence and value is not string %}
+    {%- if multiple -%}
+      {{ directive }} {{ value | sort | join(' ') }};{{ '\n' }}
+    {%- else -%}
+      {%- for val in value | sort -%}
+        {{ directive }} {{ val }};{{ '\n' }}
+      {%- endfor -%}
+    {%- endif -%}
   {%- else -%}
-    {{ value }}
-  {%- endif -%}
+    {%- if value is sameas true %}
+      {%- set value = 'on' %}
+    {%- elif value is sameas false %}
+      {%- set value = 'off' %}
+    {%- else %}
+      {%- if quote and value is string and ' ' in value %}
+        {%- set value = '"' ~ value ~ '"' %}
+      {%- endif -%}
+    {%- endif -%}
+    {{ directive }} {{ value }};
+  {%- endif %}
 {% endmacro -%}
 
 {#- redirect to a given host -#}
@@ -36,33 +51,15 @@ ssl_certificate_key {{ key }};
   return 301 {{ ssl | ternary('https', 'http') }}://{{ host }}$request_uri;
 {%- endmacro -%}
 
-{#- format a directive and key-value arguments -#}
-{% macro ngx_directive_dict(directive, values) %}
-{% for key, value in values | dictsort %}
-{{ directive }} {{ key }} {{ ngx_value(value) }};
-{% endfor %}
-{% endmacro -%}
-
-{#- format a multi-valued directive, or several single-valued directives -#}
-{% macro ngx_directive_list(directive, values, multiple) %}
-{% if multiple %}
-{{ directive }} {{ values | sort | join(' ') }};
-{% else %}
-{% for value in values %}
-{{ directive }} {{ ngx_value(value) }};
-{% endfor %}
-{% endif %}
-{% endmacro -%}
-
 {% macro ngx_headers(cfg) %}
-{% if cfg.set is defined %}
-{{ ngx_directive_dict('proxy_set_header', cfg.set) }}
+{% if cfg.set is defined -%}
+  {{ ngx_directive('proxy_set_header', cfg.set) }}
 {% endif %}
-{% if cfg.ignore is defined %}
-{{ ngx_directive_list('proxy_ignore_headers', cfg.ignore, true) }}
+{% if cfg.ignore is defined -%}
+  {{ ngx_directive('proxy_ignore_headers', cfg.ignore) }}
 {% endif %}
-{% if cfg.hide is defined %}
-{{ ngx_directive_list('proxy_hide_header', cfg.hide, false) }}
+{% if cfg.hide is defined -%}
+  {{ ngx_directive('proxy_hide_header', cfg.hide, multiple = false) }}
 {% endif %}
 {% endmacro -%}
 
@@ -71,11 +68,16 @@ ssl_certificate_key {{ key }};
 location {{ operator }}{{ operator | ternary(' ', '') }}{{ expr }} {
 {{ content }}
 {% if proxy is not none %}
-{% if proxy.pass is defined %}
-proxy_pass {{ proxy.pass }};
+{% if proxy.pass is defined -%}
+  {{ ngx_directive('proxy_pass', proxy.pass) }}
 {% endif %}
-{% if proxy.redirect is defined %}
-proxy_redirect {{ proxy.redirect }};
+{% if proxy.redirect is defined -%}
+  {{ ngx_directive(
+      'proxy_redirect',
+      proxy.redirect.from ~ ' ' ~ proxy.redirect.to,
+      quote = false
+    )
+  }}
 {% endif %}
 {% endif %}
 {% endfilter %}
@@ -84,15 +86,15 @@ proxy_redirect {{ proxy.redirect }};
 
 {#- render directives applicable to both server and location -#}
 {% macro ngx_block_content(this) %}
-{% if this.client_max_body_size is defined %}
-client_max_body_size {{ this.client_max_body_size }};
+{% if this.client_max_body_size is defined -%}
+  {{ ngx_directive('client_max_body_size', this.client_max_body_size) }}
 {% endif %}
-{% if this.gzip is defined %}
-gzip {{ ngx_value(this.gzip) }};
+{% if this.gzip is defined -%}
+  {{ ngx_directive('gzip', this.gzip) }}
 {% endif %}
 {% if this.htpasswd is defined %}
-auth_basic "Authentication required";
-auth_basic_user_file "{{ this.htpasswd }}";
+{{ ngx_directive('auth_basic', 'Authentication required') }}
+{{ ngx_directive('auth_basic_user_file', this.htpasswd) }}
 {% endif %}
 {% if this.proxy is defined and this.proxy.headers is defined %}
 
@@ -101,10 +103,10 @@ auth_basic_user_file "{{ this.htpasswd }}";
 {% if this.cache is defined %}
 {% if this.cache.enabled | default(true) %}
 
-proxy_cache {{ this.cache.id }};
-proxy_cache_valid {{ this.cache.duration }};
+{{ ngx_directive('proxy_cache', this.cache.id) }}
+{{ ngx_directive('proxy_cache_valid', this.cache.duration) }}
 {% if this.cache.key is defined %}
-proxy_cache_key "{{ this.cache.key }}";
+{{ ngx_directive('proxy_cache_key', this.cache.key) }}
 {% endif %}
 {% else %}
 proxy_cache off;
