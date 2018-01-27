@@ -94,7 +94,7 @@ Optional. Inserts a [`proxy_pass` directive](http://nginx.org/en/docs/http/ngx_h
 
 ##### `proxy.redirect`
 
-Optional. Inserts a [`proxy_redirect` directive](http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_redirect). Type: string.
+Optional dictionary of two string members: `from` and `to`. Inserts a [`proxy_redirect` directive](http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_redirect).
 
 ##### `proxy.headers`
 
@@ -215,7 +215,9 @@ Defaults:
                 - location: /
                   proxy:
                     pass: http://tomcat:8080/foo
-                    redirect: http://$proxy_host/foo $scheme://$server_name
+                    redirect:
+                      from: http://$proxy_host/foo
+                      to: $scheme://$server_name
                     headers:
                       set:
                         X-Secure: very
@@ -248,7 +250,9 @@ Defaults:
                   htpasswd: jenkins.txt
                   proxy:
                     pass: http://build:8080/jenkins/
-                    redirect: http://$proxy_host/jenkins $scheme://$server_name/ci
+                    redirect:
+                      from: http://$proxy_host/jenkins
+                      to: $scheme://$server_name/ci
 
 ## License
 
