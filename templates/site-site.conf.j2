@@ -3,7 +3,6 @@
 {% filter indent %}
 server {
 {{ ngx_directive('server_name', names) }}
-
 {{ ngx_directive('listen', ssl | ternary(443, 80)) }}
 {% if ssl %}
 ssl on;
@@ -131,6 +130,7 @@ if ($request_method = "OPTIONS") {
   {{ ngx_cors_header('Access-Control-Allow-Headers', this.cors.headers | sort | join(', ')) }}
 {% endif %}
 add_header Content-Length 0;
+
 return 200;
 {% endfilter %}
 }
@@ -157,7 +157,7 @@ return 200;
     quote = false
   )
 }}
-{% endmacro -%}
+{%- endmacro -%}
 
 {# define caches at http level #}
 {% if site.caches is defined %}
