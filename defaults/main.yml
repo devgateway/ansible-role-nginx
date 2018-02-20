@@ -16,6 +16,7 @@ ngx_core:
   tcp_nopush: true
   keepalive_timeout: 65
 ngx_gzip:
+  http_version: "1.0"
   vary: true
   types:
     - application/javascript

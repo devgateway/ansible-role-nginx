@@ -8,9 +8,9 @@
 {% if multiple %}
 {% if quote %}
 {{ directive }} {{ value | sort | join(' ') | quote }};
-{% else %}
+{%- else %}
 {{ directive }} {{ value | sort | join(' ') }};
-{% endif %}
+{%- endif %}
 {% else %}
 {% for val in value | sort %}
 {% if quote %}
