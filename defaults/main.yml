@@ -1,0 +1,32 @@
+---
+ngx_config_file: /etc/nginx.conf
+ngx_log_level: warn
+ngx_worker_connections: 1024
+ngx_log_formats:
+  main: >-
+    $remote_addr $remote_user [$time_local] "$request" $status $body_bytes_sent
+    "$http_referer" "$http_user_agent" "$http_x_forwarded_for"
+  proxy: >-
+    [$time_local] $status $server_name $proxy_host "$request_method $request_uri" $http_referer
+  short: >-
+    [$time_local] $remote_addr $request_uri $http_referer
+ngx_access_log: /var/log/nginx/access.log main
+ngx_core:
+  sendfile: true
+  tcp_nopush: true
+  keepalive_timeout: 65
+ngx_gzip:
+  vary: true
+  types:
+    - application/javascript
+    - application/json
+    - application/x-javascript
+    - application/xml
+    - application/xml+rss
+    - image/svg+xml
+    - text/css
+    - text/javascript
+    - text/plain
+    - text/xml
+ngx_ssl:
+  session_timeout: 5m

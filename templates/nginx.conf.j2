@@ -1,0 +1,68 @@
+{#- format directive value as array, boolean, or literal -#}
+{% macro ngx_directive(directive, value, multiple = true, quote = true) %}
+{% if value is mapping %}
+{% for key, val in value | dictsort %}
+{{ directive }} {{ key }} {% if quote %}{{ val | quote }}{% else %}{{ val }}{% endif %};
+{% endfor %}
+{% elif value is sequence and value is not string %}
+{% if multiple %}
+{% if quote %}
+{{ directive }} {{ value | sort | join(' ') | quote }};
+{% else %}
+{{ directive }} {{ value | sort | join(' ') }};
+{% endif %}
+{% else %}
+{% for val in value | sort %}
+{% if quote %}
+{{ directive }} {{ val | quote }};
+{% else %}
+{{ directive }} {{ val }};
+{% endif %}
+{% endfor %}
+{% endif %}
+{% else %}
+{% if value is sameas true %}
+{% set value = 'on' %}
+{% elif value is sameas false %}
+{% set value = 'off' %}
+{% else %}
+{% if quote and value is string and ' ' in value %}
+{% set value = value | quote %}
+{% endif %}
+{% endif %}
+{{ directive }} {{ value }};
+{%- endif %}
+{% endmacro -%}
+
+user nginx;
+worker_processes auto;
+error_log /var/log/nginx/error.log {{ ngx_log_level }};
+pid /var/run/nginx.pid;
+
+events {
+    worker_connections {{ ngx_worker_connections }};
+}
+
+http {
+{% filter indent(first = true) %}
+# core module directives
+{% for directive, value in ngx_core | dictsort %}
+{{ ngx_directive(directive, value) }}
+{% endfor %}
+
+# MIME settings
+include /etc/nginx/mime.types;
+default_type application/octet-stream;
+
+# logging configuration
+{{ ngx_directive('log_format', ngx_log_formats) }}
+{{ ngx_directive('access_log', ngx_access_log, quote = false) }}
+
+# gzip settings
+{% for directive, value in ngx_gzip | dictsort %}
+{{ ngx_directive('gzip_' ~ directive, value, quote = false) }}
+{% endfor %}
+
+include /etc/nginx/conf.d/*.conf;
+{% endfilter %}
+}
