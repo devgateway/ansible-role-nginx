@@ -34,6 +34,20 @@
 {%- endif %}
 {% endmacro -%}
 
+{% macro ngx_ssl_settings() %}
+{% for directive in [
+  'protocols',
+  'ciphers',
+  'prefer_server_ciphers',
+  'session_cache'
+] %}
+{% set quote = (directive == 'ciphers') %}
+{% if ngx_ssl[directive] is defined %}
+{{ ngx_directive('ssl_' ~ directive, ngx_ssl[directive], quote = quote) }}
+{% endif %}
+{% endfor %}
+{% endmacro -%}
+
 user nginx;
 worker_processes auto;
 error_log /var/log/nginx/error.log {{ ngx_log_level }};
@@ -63,6 +77,10 @@ default_type application/octet-stream;
 {{ ngx_directive('gzip_' ~ directive, value, quote = false) }}
 {% endfor %}
 
+{% if ngx_ssl %}
+# SSL settings
+{{ ngx_ssl_settings() }}
+{% endif %}
 include /etc/nginx/conf.d/*.conf;
 {% endfilter %}
 }

@@ -29,5 +29,30 @@ ngx_gzip:
     - text/javascript
     - text/plain
     - text/xml
+ngx_ssl_dhparam: /etc/pki/tls/misc/dhparam.pem
 ngx_ssl:
   session_timeout: 5m
+  ciphers:
+    - '!3DES'
+    - '!DSS'
+    - '!EXP'
+    - '!LOW'
+    - '!MD5'
+    - '!PSK'
+    - '!RC4'
+    - '!SRP'
+    - '!aNULL'
+    - '!eNULL'
+    - EDH+aRSA
+    - EECDH
+    - EECDH+ECDSA+AESGCM
+    - EECDH+ECDSA+SHA256
+    - EECDH+aRSA+AESGCM
+    - EECDH+aRSA+RC4
+    - EECDH+aRSA+SHA256
+  protocols:
+    - TLSv1
+    - TLSv1.1
+    - TLSv1.2
+  prefer_server_ciphers: true
+  session_cache: shared:SSL:10m
