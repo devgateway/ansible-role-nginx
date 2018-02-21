@@ -5,6 +5,7 @@
     mode: 0660
     content: |
       {{ key }}
+  notify: Reload Nginx
 
 - name: Install certificate
   copy:
@@ -19,3 +20,4 @@
       {{ intermediate }}
       {% endfor %}
       {% endif %}
+  notify: Reload Nginx

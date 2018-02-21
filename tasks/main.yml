@@ -3,11 +3,13 @@
   template:
     src: nginx.conf.j2
     dest: "{{ ngx_config_path }}"
+  notify: Reload Nginx
 
 - name: Generate random Diffie-Hellmann params
   command: openssl dhparam -out {{ ngx_ssl_dhparam_path[ansible_os_family] | quote }} 2048
   args:
     creates: "{{ ngx_ssl_dhparam_path[ansible_os_family] }}"
+  notify: Reload Nginx
 
 - name: Install SSL key pair
   include_tasks: certificate.yml
