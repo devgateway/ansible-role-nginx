@@ -1,0 +1,21 @@
+---
+- name: Install private key
+  copy:
+    dest: "{{ key_path }}"
+    mode: 0660
+    content: |
+      {{ key }}
+
+- name: Install certificate
+  copy:
+    dest: "{{ cert_path }}"
+    mode: 0660
+    content: |
+      {{ cert }}
+      {% if chain is string %}
+      {{ chain }}
+      {% else %}
+      {% for intermediate in chain %}
+      {{ intermediate }}
+      {% endfor %}
+      {% endif %}
