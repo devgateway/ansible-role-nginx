@@ -2,4 +2,4 @@
 - name: Configure Nginx server
   template:
     src: nginx.conf.j2
-    dest: "{{ ngx_config_file }}"
+    dest: "{{ ngx_config_path }}"

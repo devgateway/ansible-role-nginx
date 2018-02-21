@@ -1,5 +1,5 @@
 ---
-ngx_config_file: /etc/nginx.conf
+ngx_config_path: /etc/nginx.conf
 ngx_log_level: warn
 ngx_worker_connections: 1024
 ngx_log_formats:
