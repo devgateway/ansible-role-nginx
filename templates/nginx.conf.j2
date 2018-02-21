@@ -35,6 +35,9 @@
 {% endmacro -%}
 
 {% macro ngx_ssl_settings() %}
+{{ ngx_directive('ssl_certificate', ngx_ssl_cert_path[ansible_os_family]) }}
+{{ ngx_directive('ssl_certificate_key', ngx_ssl_key_path[ansible_os_family]) }}
+{{ ngx_directive('ssl_dhparam', ngx_ssl_dhparam_path[ansible_os_family]) }}
 {% for directive in [
   'protocols',
   'ciphers',
@@ -59,7 +62,7 @@ events {
 
 http {
 {% filter indent(first = true) %}
-# core module directives
+# core settings
 {% for directive, value in ngx_core | dictsort %}
 {{ ngx_directive(directive, value) }}
 {% endfor %}
@@ -77,7 +80,8 @@ default_type application/octet-stream;
 {{ ngx_directive('gzip_' ~ directive, value, quote = false) }}
 {% endfor %}
 
-{% if ngx_ssl %}
+{%- if ngx_ssl_key is defined %}
+
 # SSL settings
 {{ ngx_ssl_settings() }}
 {%- endif %}

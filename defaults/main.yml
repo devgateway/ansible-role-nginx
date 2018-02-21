@@ -1,5 +1,11 @@
 ---
 ngx_config_path: /etc/nginx.conf
+ngx_ssl_cert_path:
+  RedHat: /etc/pki/tls/certs/nginx.crt
+ngx_ssl_key_path:
+  RedHat: /etc/pki/tls/private/nginx.pem
+ngx_ssl_dhparam_path:
+  RedHat: /etc/pki/tls/misc/dhparam.pem
 ngx_log_level: warn
 ngx_worker_connections: 1024
 ngx_log_formats:
@@ -29,7 +35,6 @@ ngx_gzip:
     - text/javascript
     - text/plain
     - text/xml
-ngx_ssl_dhparam: /etc/pki/tls/misc/dhparam.pem
 ngx_ssl:
   session_timeout: 5m
   ciphers:
