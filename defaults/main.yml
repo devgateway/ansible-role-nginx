@@ -56,3 +56,5 @@ ngx_ssl:
     - TLSv1.2
   prefer_server_ciphers: true
   session_cache: shared:SSL:10m
+ngx_keep_host_header: true
+ngx_proxied_to: true

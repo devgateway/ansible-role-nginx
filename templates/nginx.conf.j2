@@ -80,7 +80,19 @@ default_type application/octet-stream;
 {% if ngx_ssl %}
 # SSL settings
 {{ ngx_ssl_settings() }}
+{%- endif %}
+{% if ngx_keep_host_header or ngx_proxied_to %}
+
+# proxy settings
+{% if ngx_keep_host_header %}
+# keep the original host header
+proxy_set_header Host $http_host;
 {% endif %}
+{% if ngx_proxied_to %}
+add_header X-Proxied-To "$proxy_host" always;
+{% endif %}
+{% endif %}
+
 include /etc/nginx/conf.d/*.conf;
 {% endfilter %}
 }
