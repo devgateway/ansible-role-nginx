@@ -24,15 +24,15 @@ ssl on;
   return 301 {{ ssl | ternary('https', 'http') }}://{{ host }}$request_uri;
 {%- endmacro -%}
 
-{% macro ngx_headers(cfg) %}
-{% if cfg.set is defined -%}
-  {{ ngx_directive('proxy_set_header', cfg.set) }}
+{% macro ngx_headers(headers) %}
+{% if headers.set is defined -%}
+  {{ ngx_directive('proxy_set_header', headers.set) }}
 {% endif %}
-{% if cfg.ignore is defined -%}
-  {{ ngx_directive('proxy_ignore_headers', cfg.ignore) }}
+{% if headers.ignore is defined -%}
+  {{ ngx_directive('proxy_ignore_headers', headers.ignore) }}
 {% endif %}
-{% if cfg.hide is defined -%}
-  {{ ngx_directive('proxy_hide_header', cfg.hide, multiple = false) }}
+{% if headers.hide is defined -%}
+  {{ ngx_directive('proxy_hide_header', headers.hide, multiple = false) }}
 {% endif %}
 {% endmacro -%}
 
