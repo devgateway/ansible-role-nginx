@@ -1,0 +1,35 @@
+{#- format directive value as array, boolean, or literal -#}
+{% macro ngx_directive(directive, value, multiple = true, quote = true) %}
+{% if value is mapping %}
+{% for key, val in value | dictsort %}
+{{ directive }} {{ key }} {% if quote %}{{ val | quote }}{% else %}{{ val }}{% endif %};
+{% endfor %}
+{% elif value is sequence and value is not string %}
+{% if multiple %}
+{% if quote %}
+{{ directive }} {{ value | sort | join(' ') | quote }};
+{%- else %}
+{{ directive }} {{ value | sort | join(' ') }};
+{%- endif %}
+{% else %}
+{% for val in value | sort %}
+{% if quote %}
+{{ directive }} {{ val | quote }};
+{% else %}
+{{ directive }} {{ val }};
+{% endif %}
+{% endfor %}
+{% endif %}
+{% else %}
+{% if value is sameas true %}
+{% set value = 'on' %}
+{% elif value is sameas false %}
+{% set value = 'off' %}
+{% else %}
+{% if quote and value is string and ' ' in value %}
+{% set value = value | quote %}
+{% endif %}
+{% endif %}
+{{ directive }} {{ value }};
+{%- endif %}
+{% endmacro -%}

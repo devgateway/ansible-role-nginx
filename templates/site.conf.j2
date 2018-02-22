@@ -1,3 +1,5 @@
+{% from 'directive.j2' import ngx_directive -%}
+
 {#- server block -#}
 {%- macro ngx_server(names, content, ssl = true, key = none, cert = none) %}
 {% filter indent %}
@@ -15,34 +17,6 @@ ssl on;
 {{ content }}
 {% endfilter %}
 }
-{% endmacro -%}
-
-{#- format directive value as array, boolean, or literal -#}
-{% macro ngx_directive(directive, value, multiple = true, quote = true) -%}
-  {%- if value is mapping %}
-    {%- for key, val in value | dictsort -%}
-      {{ directive }} {{ key }} {{ val }};{{ '\n' }}
-    {%- endfor %}
-  {%- elif value is sequence and value is not string %}
-    {%- if multiple -%}
-      {{ directive }} {{ value | sort | join(' ') }};{{ '\n' }}
-    {%- else -%}
-      {%- for val in value | sort -%}
-        {{ directive }} {{ val }};{{ '\n' }}
-      {%- endfor -%}
-    {%- endif -%}
-  {%- else -%}
-    {%- if value is sameas true %}
-      {%- set value = 'on' %}
-    {%- elif value is sameas false %}
-      {%- set value = 'off' %}
-    {%- else %}
-      {%- if quote and value is string and ' ' in value %}
-        {%- set value = '"' ~ value ~ '"' %}
-      {%- endif -%}
-    {%- endif -%}
-    {{ directive }} {{ value }};
-  {%- endif %}
 {% endmacro -%}
 
 {#- redirect to a given host -#}
