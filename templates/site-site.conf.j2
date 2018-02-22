@@ -1,0 +1,258 @@
+{#- server block -#}
+{%- macro ngx_server(names, content, ssl = true, key = none, cert = none) %}
+{% filter indent %}
+server {
+{{ ngx_directive('server_name', names) }}
+{{ ngx_directive('listen', ssl | ternary(443, 80)) }}
+{% if ssl %}
+ssl on;
+{% if key is not none or cert is not none %}
+{{ ngx_directive('ssl_certificate', cert) }}
+{{ ngx_directive('ssl_certificate_key', key) }}
+{% endif %}
+{% endif %}
+
+{{ content }}
+{% endfilter %}
+}
+{% endmacro -%}
+
+{#- format directive value as array, boolean, or literal -#}
+{% macro ngx_directive(directive, value, multiple = true, quote = true) -%}
+  {%- if value is mapping %}
+    {%- for key, val in value | dictsort -%}
+      {{ directive }} {{ key }} {{ val }};{{ '\n' }}
+    {%- endfor %}
+  {%- elif value is sequence and value is not string %}
+    {%- if multiple -%}
+      {{ directive }} {{ value | sort | join(' ') }};{{ '\n' }}
+    {%- else -%}
+      {%- for val in value | sort -%}
+        {{ directive }} {{ val }};{{ '\n' }}
+      {%- endfor -%}
+    {%- endif -%}
+  {%- else -%}
+    {%- if value is sameas true %}
+      {%- set value = 'on' %}
+    {%- elif value is sameas false %}
+      {%- set value = 'off' %}
+    {%- else %}
+      {%- if quote and value is string and ' ' in value %}
+        {%- set value = '"' ~ value ~ '"' %}
+      {%- endif -%}
+    {%- endif -%}
+    {{ directive }} {{ value }};
+  {%- endif %}
+{% endmacro -%}
+
+{#- redirect to a given host -#}
+{% macro ngx_permanent_redirect(ssl, host) -%}
+  return 301 {{ ssl | ternary('https', 'http') }}://{{ host }}$request_uri;
+{%- endmacro -%}
+
+{% macro ngx_headers(cfg) %}
+{% if cfg.set is defined -%}
+  {{ ngx_directive('proxy_set_header', cfg.set) }}
+{% endif %}
+{% if cfg.ignore is defined -%}
+  {{ ngx_directive('proxy_ignore_headers', cfg.ignore) }}
+{% endif %}
+{% if cfg.hide is defined -%}
+  {{ ngx_directive('proxy_hide_header', cfg.hide, multiple = false) }}
+{% endif %}
+{% endmacro -%}
+
+{% macro ngx_location(expr, content, operator = '', proxy = none, fastcgi = none) %}
+{% filter indent %}
+location {{ operator }}{{ operator | ternary(' ', '') }}{{ expr }} {
+{{ content }}
+{% if proxy is not none %}
+{% if proxy.pass is defined -%}
+  {{ ngx_directive('proxy_pass', proxy.pass) }}
+{% endif %}
+{% if proxy.redirect is defined -%}
+  {{ ngx_directive(
+      'proxy_redirect',
+      proxy.redirect.from ~ ' ' ~ proxy.redirect.to,
+      quote = false
+    )
+  }}
+{% endif %}
+{% endif %}
+{% endfilter %}
+}
+{% endmacro -%}
+
+{#- render directives applicable to both server and location -#}
+{% macro ngx_block_content(this) %}
+{% if this.client_max_body_size is defined -%}
+  {{ ngx_directive('client_max_body_size', this.client_max_body_size) }}
+{% endif %}
+{% if this.gzip is defined -%}
+  {{ ngx_directive('gzip', this.gzip) }}
+{% endif %}
+{% if this.htpasswd is defined %}
+{{ ngx_directive('auth_basic', 'Authentication required') }}
+{{ ngx_directive('auth_basic_user_file', this.htpasswd) }}
+{% endif %}
+{% if this.proxy is defined and this.proxy.headers is defined %}
+
+{{ ngx_headers(this.proxy.headers) }}
+{%- endif %}
+{% if this.cache is defined %}
+{% if this.cache.enabled | default(true) %}
+
+{{ ngx_directive('proxy_cache', this.cache.id) }}
+{{ ngx_directive('proxy_cache_valid', this.cache.duration) }}
+{% if this.cache.key is defined %}
+{{ ngx_directive('proxy_cache_key', this.cache.key) }}
+{% endif %}
+{% else %}
+proxy_cache off;
+{%- endif %}
+{% endif %}
+{% if this.cors is defined %}
+
+{% filter indent %}
+if ($request_method = "OPTIONS") {
+{{ ngx_cors_header('Access-Control-Allow-Origin', this.cors.origin | default('*')) }}
+{% if this.cors.max_age is defined -%}
+  {{ ngx_cors_header('Access-Control-Max-Age', this.cors.max_age) }}
+{% endif %}
+{% if this.cors.methods is defined -%}
+  {{ ngx_cors_header(
+      'Access-Control-Allow-Methods',
+      this.cors.methods | sort | join(', ') | upper
+    )
+  }}
+{% endif %}
+{% if this.cors.headers is defined -%}
+  {{ ngx_cors_header('Access-Control-Allow-Headers', this.cors.headers | sort | join(', ')) }}
+{% endif %}
+add_header Content-Length 0;
+
+return 200;
+{% endfilter %}
+}
+{% endif %}
+{% if this.locations is defined %}
+
+{% for location in this.locations %}
+{{ ngx_location(
+    location.location,
+    operator = location.operator | default(''),
+    content = ngx_block_content(location),
+    proxy = location.proxy | default(none),
+    fastcgi = location.fastcgi | default(none)
+  )
+}}
+{% endfor %}
+{% endif %}
+{% endmacro -%}
+
+{% macro ngx_cors_header(header, value) -%}
+{{ ngx_directive(
+    'add_header',
+    header ~ ' "' ~ value ~ '"',
+    quote = false
+  )
+}}
+{%- endmacro -%}
+
+{# define caches at http level #}
+{% if site.caches is defined %}
+{% for cache in site.caches %}
+{% set proxy_cache_path %}
+proxy_cache_path
+"{{ ngxs_cache_dir[ansible_os_family] }}/{{ cache.id }}"
+levels=1:2
+keys_zone={{ cache.id }}:{{ (cache.max_keys / 8000.0) | round(0, 'ceil') | int }}m
+{% if cache.inactive is defined %}
+inactive={{ cache.inactive }}
+{% endif %}
+{% if cache.inactive is defined %}
+max_size={{ cache.max_size }}
+{% endif %}
+{%- endset %}
+{{ proxy_cache_path | replace('\n', ' ') }};
+{% endfor %}
+
+{% endif -%}
+
+{# define the referrer spam map #}
+{% if site.referrer_spammers is defined %}
+{# make sure the var name doesn't conflict between sites #}
+{% set ref_spam_var = 'spam_ref_' ~ (site.names[0] | hash('sha1')) %}
+{% filter indent %}
+map $http_referer ${{ ref_spam_var }} {
+hostnames;
+default 0;
+{% for spammer in site.referrer_spammers %}
+.{{ spammer }} 1;
+{% endfor %}
+{% endfilter %}
+}
+
+{% endif -%}
+
+{# redirects from other domains to the primary domain #}
+{% if site.redirect_from is defined %}
+{# don't use the leading dot in redirect, only in server_name #}
+{% if site.names[0][0] == '.' %}
+{% set primary_name = site.names[0] | replace('.', '', 1) %}
+{%- else %}
+{% set primary_name = site.names[0] %}
+{%- endif -%}
+
+{# redirect to the primary domain (plaintext) #}
+{% if site.ssl | default(true) %}
+{{ ngx_server(
+  names = site.redirect_from,
+  content = ngx_permanent_redirect(true, primary_name),
+  ssl = false
+  ) }}
+{% endif -%}
+
+{# redirect to the primary domain #}
+{{ ngx_server(
+  names = site.redirect_from,
+  content = ngx_permanent_redirect(true, primary_name),
+  ssl = site.ssl | default(true),
+  key = site.ssl_key | default(none),
+  cert = site.ssl_cert | default(none)
+) }}
+{% endif %}
+
+{# redirect from plaintext to SSL #}
+{% if site.ssl | default(true) %}
+{{ ngx_server(
+  names = site.names,
+  content = ngx_permanent_redirect(true, '$http_host'),
+  ssl = false
+  ) }}
+{%- endif %}
+
+{%- set main_content -%}
+{{ ngx_block_content(site) }}
+{%- if not (site.allow_robots | default(true)) %}
+location = /robots.txt {
+    access_log off;
+    expires 1d;
+    return 200 "User-Agent: *\nDisallow: /\n";
+}
+{% endif %}
+{% if site.referrer_spammers is defined %}
+
+if (${{ ref_spam_var }}) {
+    return 403;
+}
+{% endif %}
+{% endset %}
+
+{{ ngx_server(
+  names = site.names,
+  content = main_content,
+  ssl = site.ssl | default(true),
+  key = site.ssl_key | default(none),
+  cert = site.ssl_cert | default(none)
+) }}
