@@ -1,5 +1,5 @@
 ---
-ngx_config_path: /etc/nginx.conf
+ngx_config_path: /etc/nginx/nginx.conf
 ngx_ssl_cert_path:
   RedHat: /etc/pki/tls/certs/nginx.crt
 ngx_ssl_key_path:
