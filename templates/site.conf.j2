@@ -36,22 +36,30 @@ ssl on;
 {% endif %}
 {% endmacro -%}
 
-{% macro ngx_location(expr, content, operator = '', proxy = none, fastcgi = none) %}
-{% filter indent %}
-location {{ operator }}{{ operator | ternary(' ', '') }}{{ expr }} {
-{{ content }}
-{% if proxy is not none %}
-{% if proxy.pass is defined -%}
-  {{ ngx_directive('proxy_pass', proxy.pass) }}
-{% endif %}
-{% if proxy.redirect is defined -%}
+{% macro ngx_backend(backend) %}
+{% if backend.pass is defined -%}
+  {{ ngx_directive(backend.type ~ '_pass', backend.pass) }}
+{%- endif %}
+{% if backend.type == 'fastcgi' %}
+{% elif backend.type == 'uwsgi' %}
+{% else %}{# proxy #}
+{% if backend.redirect is defined -%}
   {{ ngx_directive(
       'proxy_redirect',
-      proxy.redirect.from ~ ' ' ~ proxy.redirect.to,
+      backend.redirect.from ~ ' ' ~ backend.redirect.to,
       quote = false
     )
   }}
 {% endif %}
+{% endif %}
+{% endmacro -%}
+
+{% macro ngx_location(expr, content, operator = '', backend = none) %}
+{% filter indent %}
+location {{ operator }}{{ operator | ternary(' ', '') }}{{ expr }} {
+{{ content }}
+{% if backend is not none %}
+{{ ngx_backend(backend) }}
 {% endif %}
 {% endfilter %}
 }
@@ -116,8 +124,7 @@ return 200;
     location.location,
     operator = location.operator | default(''),
     content = ngx_block_content(location),
-    proxy = location.proxy | default(none),
-    fastcgi = location.fastcgi | default(none)
+    backend = location.backend | default(none)
   )
 }}
 {% endfor %}
