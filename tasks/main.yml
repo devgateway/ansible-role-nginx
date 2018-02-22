@@ -4,17 +4,18 @@
     name: nginx
     state: installed
 
-- name: Configure Nginx server
-  template:
-    src: nginx.conf.j2
-    dest: "{{ ngx_config_path }}"
-  notify: Reload Nginx
-
 - name: Configure sites
   include_tasks: site.yml
   with_items: "{{ ngx_sites | default([]) }}"
   loop_control:
     loop_var: site
+
+- name: Configure Nginx server
+  template:
+    src: nginx.conf.j2
+    dest: "{{ ngx_config_path }}"
+    validate: "nginx -tc %s"
+  notify: Reload Nginx
 
 - name: Generate random Diffie-Hellmann params
   command: openssl dhparam -out {{ ngx_ssl_dhparam_path[ansible_os_family] | quote }} 2048
