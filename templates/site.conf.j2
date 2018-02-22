@@ -37,12 +37,12 @@ ssl on;
 {% endmacro -%}
 
 {% macro ngx_backend(backend) %}
-{% if backend.pass is defined -%}
-  {{ ngx_directive(backend.type ~ '_pass', backend.pass) }}
-{%- endif %}
 {% if backend.type == 'fastcgi' %}
+{{ ngx_directive('fastcgi_pass', backend.pass | default('unix:/var/run/php')) }}
 {% elif backend.type == 'uwsgi' %}
+{{ ngx_directive('uwsgi_pass', backend.pass) }}
 {% else %}{# proxy #}
+{{ ngx_directive('proxy_pass', backend.pass) }}
 {% if backend.redirect is defined -%}
   {{ ngx_directive(
       'proxy_redirect',
@@ -51,6 +51,16 @@ ssl on;
     )
   }}
 {% endif %}
+{% endif %}
+{% endmacro -%}
+
+{% macro ngx_preset(preset) %}
+{% if preset == 'php' %}
+include fastcgi_params;
+fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+index index.php;
+fastcgi_index index.php;
+{% elif preset == 'uwsgi' %}
 {% endif %}
 {% endmacro -%}
 
@@ -214,6 +224,9 @@ default 0;
 {%- endif %}
 
 {%- set main_content -%}
+{% if site.preset is defined %}
+{{ ngx_preset(site.preset) }}
+{% endif %}
 {{ ngx_block_content(site) }}
 {%- if not (site.allow_robots | default(true)) %}
 location = /robots.txt {
