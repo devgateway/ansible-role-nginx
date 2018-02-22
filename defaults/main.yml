@@ -1,5 +1,15 @@
 ---
 ngx_config_path: /etc/nginx/nginx.conf
+ngx_config_dir: /etc/nginx/conf.d
+ngx_cache_dir:
+  RedHat: /var/cache/nginx
+  Debian: /var/cache/nginx
+ngx_cache_dir_owner:
+  RedHat: nginx
+  Debian: www-data
+ngx_cache_dir_group:
+  RedHat: nginx
+  Debian: www-data
 ngx_ssl_cert_path:
   RedHat: /etc/pki/tls/certs/nginx.crt
 ngx_ssl_key_path:
