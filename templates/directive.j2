@@ -1,35 +1,27 @@
-{#- format directive value as array, boolean, or literal -#}
-{% macro ngx_directive(directive, value, multiple = true, quote = true) %}
-{% if value is mapping %}
-{% for key, val in value | dictsort %}
-{{ directive }} {{ key }} {% if quote %}{{ val | quote }}{% else %}{{ val }}{% endif %};
-{% endfor %}
-{% elif value is sequence and value is not string %}
-{% if multiple %}
-{% if quote %}
-{{ directive }} {{ value | sort | join(' ') | quote }};
+{% macro ngx_directive(directive, my_args = [], my_kwargs = {}) %}
+{% if my_args is string or my_args is not sequence %}
+{% set my_args = [my_args] %}
+{% endif %}
+{{ directive }}
+{%- for arg in my_args %}
+{% if arg is sameas true %}
+{% set arg = 'on' %}
+{% elif arg is sameas false %}
+{% set arg = 'off' %}
+{% else %}
+{% if arg is string and ' ' in arg %}
+{% set arg = arg | quote %}
+{% endif %}
+{% endif %}
+ {{ arg }}
+{%- endfor %}
+{% for key, val in my_kwargs | dictsort %}
+{%- if val is sameas true %}
+ {{ key }}
+{%- elif val is sameas false %}
 {%- else %}
-{{ directive }} {{ value | sort | join(' ') }};
+ {{ key }}={{ val }}
 {%- endif %}
-{% else %}
-{% for val in value | sort %}
-{% if quote %}
-{{ directive }} {{ val | quote }};
-{% else %}
-{{ directive }} {{ val }};
-{% endif %}
-{% endfor %}
-{% endif %}
-{% else %}
-{% if value is sameas true %}
-{% set value = 'on' %}
-{% elif value is sameas false %}
-{% set value = 'off' %}
-{% else %}
-{% if quote and value is string and ' ' in value %}
-{% set value = value | quote %}
-{% endif %}
-{% endif %}
-{{ directive }} {{ value }};
-{%- endif %}
-{% endmacro -%}
+{%- endfor %}
+;
+{%- endmacro -%}
