@@ -6,15 +6,15 @@
 {%- endmacro -%}
 
 {% macro ngx_headers(headers) %}
-{% if headers.set is defined -%}
-  {{ ngx_directive('proxy_set_header', headers.set) }}
+{% for header in headers.set | default([]) %}
+{{ ngx_directive('proxy_set_header', header) }}
+{% endfor %}
+{% if headers.ignore is defined %}
+{{ ngx_directive('proxy_ignore_headers', headers.ignore) }}
 {% endif %}
-{% if headers.ignore is defined -%}
-  {{ ngx_directive('proxy_ignore_headers', headers.ignore) }}
-{% endif %}
-{% if headers.hide is defined -%}
-  {{ ngx_directive('proxy_hide_header', headers.hide, multiple = false) }}
-{% endif %}
+{% for header in headers.hide | default([]) %}
+{{ ngx_directive('proxy_hide_header', header) }}
+{% endfor %}
 {% endmacro -%}
 
 {% macro ngx_backend(backend) %}
@@ -24,13 +24,8 @@
 {{ ngx_directive('uwsgi_pass', backend.pass) }}
 {% else %}{# proxy #}
 {{ ngx_directive('proxy_pass', backend.pass) }}
-{% if backend.redirect is defined -%}
-  {{ ngx_directive(
-      'proxy_redirect',
-      backend.redirect.from ~ ' ' ~ backend.redirect.to,
-      quote = false
-    )
-  }}
+{% if backend.redirect is defined %}
+{{ ngx_directive('proxy_redirect', [backend.redirect.from, backend.redirect.to]) }}
 {% endif %}
 {% endif %}
 {% endmacro -%}
@@ -88,19 +83,21 @@ proxy_cache off;
 
 {% filter indent %}
 if ($request_method = "OPTIONS") {
-{{ ngx_cors_header('Access-Control-Allow-Origin', this.cors.origin | default('*')) }}
-{% if this.cors.max_age is defined -%}
-  {{ ngx_cors_header('Access-Control-Max-Age', this.cors.max_age) }}
+{{ ngx_directive('add_header', ['Access-Control-Allow-Origin', this.cors.origin | default('*'))]) }}
+{% if this.cors.max_age is defined %}
+{{ ngx_directive('add_header', ['Access-Control-Max-Age', this.cors.max_age]) }}
 {% endif %}
-{% if this.cors.methods is defined -%}
-  {{ ngx_cors_header(
-      'Access-Control-Allow-Methods',
-      this.cors.methods | sort | join(', ') | upper
-    )
-  }}
+{% if this.cors.methods is defined %}
+{{ ngx_directive(
+  'add_header',
+  ['Access-Control-Allow-Methods', this.cors.methods | sort | join(', ') | upper]
+) }}
 {% endif %}
-{% if this.cors.headers is defined -%}
-  {{ ngx_cors_header('Access-Control-Allow-Headers', this.cors.headers | sort | join(', ')) }}
+{% if this.cors.headers is defined %}
+{{ ngx_directive(
+  'add_header',
+  ['Access-Control-Allow-Headers', this.cors.headers | sort | join(', ')]
+) }}
 {% endif %}
 add_header Content-Length 0;
 
@@ -121,15 +118,6 @@ return 200;
 {% endfor %}
 {% endif %}
 {% endmacro -%}
-
-{% macro ngx_cors_header(header, value) -%}
-{{ ngx_directive(
-    'add_header',
-    header ~ ' "' ~ value ~ '"',
-    quote = false
-  )
-}}
-{%- endmacro -%}
 
 {# define caches at http level #}
 {% if site.caches is defined %}
