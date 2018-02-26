@@ -1,24 +1,5 @@
 {% from 'directive.j2' import ngx_directive -%}
 
-{#- server block -#}
-{%- macro ngx_server(names, content, ssl = true, key = none, cert = none) %}
-{% filter indent %}
-server {
-{{ ngx_directive('server_name', names) }}
-{{ ngx_directive('listen', ssl | ternary(443, 80)) }}
-{% if ssl %}
-ssl on;
-{% if key is not none or cert is not none %}
-{{ ngx_directive('ssl_certificate', cert) }}
-{{ ngx_directive('ssl_certificate_key', key) }}
-{% endif %}
-{% endif %}
-
-{{ content }}
-{% endfilter %}
-}
-{% endmacro -%}
-
 {#- redirect to a given host -#}
 {% macro ngx_permanent_redirect(ssl, host) -%}
   return 301 {{ ssl | ternary('https', 'http') }}://{{ host }}$request_uri;
