@@ -59,3 +59,21 @@
     )
 }}
 {%- endmacro -%}
+
+{%  macro bulk_directives(context) %}
+{%    for dir_name, value in context | dictsort %}
+{%      set my_args = [] %}
+{%      set my_kwargs = {} %}
+{%      if value is mapping %}
+{%        if 'args' in value or 'kwargs' in value %}
+{%          set my_args = value.args | default([]) %}
+{%          set my_kwargs = value.kwargs | default({}) %}
+{%        else %}
+{%          set my_kwargs = value %}
+{%        endif %}
+{%      else %}
+{%        set my_args = value %}
+{%      endif %}
+{{ directive(dir_name, my_args, my_kwargs) }}{{ loop.last | ternary('', '\n') }}
+{%-   endfor %}
+{%  endmacro -%}
