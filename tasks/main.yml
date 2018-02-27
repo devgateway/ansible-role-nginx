@@ -1,33 +1,6 @@
 ---
-- name: Install Nginx package
-  package:
-    name: nginx
-    state: installed
-
-- name: Configure sites
-  include_tasks: site.yml
-  with_items: "{{ ngx_sites | default([]) }}"
-  loop_control:
-    loop_var: site
-
-- name: Configure Nginx server
-  template:
-    src: nginx.conf.j2
-    dest: "{{ ngx_config_path }}"
-    validate: "nginx -tc %s"
-  notify: Reload Nginx
-
-- name: Generate random Diffie-Hellmann params
-  command: openssl dhparam -out {{ ngx_ssl_dhparam_path[ansible_os_family] | quote }} 2048
-  args:
-    creates: "{{ ngx_ssl_dhparam_path[ansible_os_family] }}"
-  notify: Reload Nginx
-
-- name: Install SSL key pair
-  include_tasks: certificate.yml
-  vars:
-    key: "{{ ngx_ssl_key }}"
-    key_path: "{{ ngx_ssl_key_path[ansible_os_family] }}"
-    cert: "{{ ngx_ssl_cert }}"
-    cert_path: "{{ ngx_ssl_cert_path[ansible_os_family] }}"
-    chain: "{{ ngx_ssl_chain | default([]) }}"
+- name: Refuse to run
+  fail:
+    msg: >-
+      This role must not be invoked directly.
+      Use import_role tasks_from=nginx or tasks_from=site instead.
