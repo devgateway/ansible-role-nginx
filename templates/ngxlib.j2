@@ -68,6 +68,8 @@
 {%        if 'args' in value or 'kwargs' in value %}
 {%          set my_args = value.args | default([]) %}
 {%          set my_kwargs = value.kwargs | default({}) %}
+{%        elif ansible_os_family in value %}
+{%          set my_args = value[ansible_os_family] %}
 {%        else %}
 {%          set my_kwargs = value %}
 {%        endif %}

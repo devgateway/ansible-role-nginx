@@ -1,4 +1,3 @@
-{% from 'directive.j2' import ngx_directive -%}
 
 {% macro ngx_ssl_settings() %}
 {{ ngx_directive('ssl_certificate', ngx_ssl_cert_path[ansible_os_family]) }}
@@ -14,6 +13,7 @@
 {% if ngx_ssl[directive] is defined %}
 {{ ngx_directive('ssl_' ~ directive, ngx_ssl[directive], quote = quote) }}
 {% endif %}
+{% import 'ngxlib.j2' as ngx with context -%}
 {% endfor %}
 {% endmacro -%}
 
