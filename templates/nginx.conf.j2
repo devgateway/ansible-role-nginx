@@ -1,68 +1,14 @@
-
-{% macro ngx_ssl_settings() %}
-{{ ngx_directive('ssl_certificate', ngx_ssl_cert_path[ansible_os_family]) }}
-{{ ngx_directive('ssl_certificate_key', ngx_ssl_key_path[ansible_os_family]) }}
-{{ ngx_directive('ssl_dhparam', ngx_ssl_dhparam_path[ansible_os_family]) }}
-{% for directive in [
-  'protocols',
-  'ciphers',
-  'prefer_server_ciphers',
-  'session_cache'
-] %}
-{% set quote = (directive == 'ciphers') %}
-{% if ngx_ssl[directive] is defined %}
-{{ ngx_directive('ssl_' ~ directive, ngx_ssl[directive], quote = quote) }}
-{% endif %}
 {% import 'ngxlib.j2' as ngx with context -%}
+
+{{ ngx.bulk_directives(ngx_settings.main | default({})) }}
+
+{% for context in ['events', 'http'] %}
+{{
+  ngx.block(
+    context,
+    ngx.bulk_directives(
+      ngx_settings[context] | default({})
+    )
+  )
+}}{{ loop.last | ternary('', '\n') }}
 {% endfor %}
-{% endmacro -%}
-
-user nginx;
-worker_processes auto;
-error_log /var/log/nginx/error.log {{ ngx_log_level }};
-pid /var/run/nginx.pid;
-
-events {
-    worker_connections {{ ngx_worker_connections }};
-}
-
-http {
-{% filter indent(first = true) %}
-# core settings
-{% for directive, value in ngx_core | dictsort %}
-{{ ngx_directive(directive, value) }}
-{% endfor %}
-
-# MIME settings
-include /etc/nginx/mime.types;
-default_type application/octet-stream;
-
-# logging configuration
-{{ ngx_directive('log_format', ngx_log_formats) }}
-{{ ngx_directive('access_log', ngx_access_log, quote = false) }}
-
-# gzip settings
-{% for directive, value in ngx_gzip | dictsort %}
-{{ ngx_directive('gzip_' ~ directive, value, quote = false) }}
-{% endfor %}
-
-{%- if ngx_ssl_key is defined %}
-
-# SSL settings
-{{ ngx_ssl_settings() }}
-{%- endif %}
-{% if ngx_keep_host_header or ngx_proxied_to %}
-
-# proxy settings
-{% if ngx_keep_host_header %}
-# keep the original host header
-proxy_set_header Host $http_host;
-{% endif %}
-{% if ngx_proxied_to %}
-add_header X-Proxied-To "$proxy_host" always;
-{% endif %}
-{% endif %}
-
-include /etc/nginx/conf.d/*.conf;
-{% endfilter %}
-}
