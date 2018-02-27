@@ -3,21 +3,14 @@
   template:
     src: site.conf.j2
     dest: |-
-      {{ ngx_config_dir }}/
-      {%- if site.names[0][0] == '.' %}
-      {{ site.names[0] | replace('.', '', 1) }}
-      {%- else %}
-      {{ site.names[0] }}
-      {%- endif -%}
-      .conf
-
-- name: Create cache directories
-  file:
-    state: directory
-    path: "{{ ngx_cache_dir[ansible_os_family] }}/{{ cache.id }}"
-    owner: "{{ ngx_cache_dir_owner[ansible_os_family] }}"
-    group: "{{ ngx_cache_dir_group[ansible_os_family] }}"
-    mode: 0700
-  with_items: "{{ site.caches | default([]) }}"
-  loop_control:
-    loop_var: cache
+      {%  if site.settings.server.server_name is string %}
+      {%    set first_name = site.settings.server.server_name %}
+      {%  else %}
+      {%    set first_name = site.settings.server.server_name[0] %}
+      {%  endif %}
+      {%- if first_name[0] == '.' %}
+      {%    set clean_name = first_name | replace('.', '', 1) %}
+      {%  else %}
+      {%    set clean_name = first_name %}
+      {%  endif %}
+      {{  ngx_config_dir }}/{{ clean_name }}.conf
