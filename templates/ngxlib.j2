@@ -1,63 +1,54 @@
-{% macro directive(directive, my_args = [], my_kwargs = {}) %}
-{% if my_args is string or my_args is not sequence %}
-{% set my_args = [my_args] %}
-{% endif %}
-{{ directive }}
-{%- for arg in my_args %}
-{% if arg is sameas true %}
-{% set arg = 'on' %}
-{% elif arg is sameas false %}
-{% set arg = 'off' %}
-{% else %}
-{% if arg is string and ' ' in arg %}
-{% set arg = arg | quote %}
-{% endif %}
-{% endif %}
- {{ arg }}
-{%- endfor %}
-{% for key, val in my_kwargs | dictsort %}
-{%- if val is sameas true %}
- {{ key }}
-{%- elif val is sameas false %}
-{%- else %}
- {{ key }}={{ val }}
-{%- endif %}
-{%- endfor %}
-;
+{%  macro directive(directive, my_args = [], my_kwargs = {}) %}
+{%    if my_args is string or my_args is not sequence %}
+{%      set my_args = [my_args] %}
+{%    endif %}
+{{    directive }}
+{%-   for arg in my_args %}
+{%      if arg is sameas true %}
+{%        set arg = 'on' %}
+{%      elif arg is sameas false %}
+{%        set arg = 'off' %}
+{%      else %}
+{%        if arg is string and ' ' in arg %}
+{%          set arg = arg | quote %}
+{%        endif %}
+{%      endif %}
+{{      ' ' }}{{ arg }}
+{%-   endfor %}
+{%    for key, val in my_kwargs | dictsort %}
+{%-     if val is sameas true %}
+{{        ' ' }}{{ key }}
+{%-     elif val is not sameas false %}
+{{        ' ' }}{{ key }}={{ val }}
+{%-     endif %}
+{%-   endfor %}
+{{    ';' }}
 {%- endmacro -%}
 
-{% macro block(block_name, content = none) %}
-{% if block_name is string -%}
-  {{ block_name }}
-{%- else -%}
-  {{ block_name | select | join(' ') }}
-{%- endif -%}
-{{ ' ' }}{
-{% if content %}
-{% filter indent(first = true) %}
-{{ content }}
-{% endfilter %}
-{% endif %}
-}
+{%  macro block(block_name, content = none) %}
+{%    if block_name is string -%}
+{{      block_name }}
+{%-   else -%}
+{{      block_name | select | join(' ') }}
+{%-   endif -%}
+{{    ' {' }}
+{%    if content %}
+{%      filter indent(first = true) %}
+{{        content }}
+{%      endfilter %}
+{%    endif %}
+{{    '}' }}
 {%- endmacro -%}
 
-{% macro location(expr, operator = '', content = none) %}
-{{  block(
-      block_name = ['location', operator, expr],
-      content = content
-    )
-}}
+{%  macro location(expr, operator = none, content = none) %}
+{{    block(['location', operator, expr], content) }}
 {%- endmacro -%}
 
-{% macro redirect(host, ssl = true, permanent = true, uri = '$request_uri') %}
-{{  directive(
-      'return',
-      [
-        permanent | ternary(301, 302),
-        (ssl | ternary('https', 'http')) ~ '://' ~ host ~ uri
-      ]
-    )
-}}
+{%  macro redirect(host, ssl = true, permanent = true, uri = '$request_uri') %}
+{%    set url %}
+{{      ssl | ternary('https', 'http') }}://{{ host ~ uri }}
+{%-   endset %}
+{{    directive('return', [permanent | ternary(301, 302), url]) }}
 {%- endmacro -%}
 
 {%  macro bulk_directives(context) %}
@@ -76,6 +67,6 @@
 {%      else %}
 {%        set my_args = value %}
 {%      endif %}
-{{ directive(dir_name, my_args, my_kwargs) }}{{ loop.last | ternary('', '\n') }}
+{{      directive(dir_name, my_args, my_kwargs) }}{{ loop.last | ternary('', '\n') }}
 {%-   endfor %}
 {%  endmacro -%}
