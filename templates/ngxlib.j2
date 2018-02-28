@@ -68,23 +68,23 @@
 {%- endmacro -%}
 
 {%  macro bulk_directives(context) %}
-{%    for dir_name, value in context | dictsort %}
-{%      if dir_name not in ['location', 'locations', 'if', 'ifs'] %}
-{%        set my_args = [] %}
-{%        set my_kwargs = {} %}
-{%        if value is mapping %}
-{%          if 'args' in value or 'kwargs' in value %}
-{%            set my_args = value.args | default([]) %}
-{%            set my_kwargs = value.kwargs | default({}) %}
-{%          elif ansible_os_family in value %}
-{%            set my_args = value[ansible_os_family] %}
-{%          else %}
-{%            set my_kwargs = value %}
-{%          endif %}
+{%    set keywords = ['location', 'locations', 'if', 'ifs'] %}
+{%    for dir in context.iterkeys() | difference(keywords) %}
+{%      set value = context[dir] %}
+{%      set my_args = [] %}
+{%      set my_kwargs = {} %}
+{%      if value is mapping %}
+{%        if 'args' in value or 'kwargs' in value %}
+{%          set my_args = value.args | default([]) %}
+{%          set my_kwargs = value.kwargs | default({}) %}
+{%        elif ansible_os_family in value %}
+{%          set my_args = value[ansible_os_family] %}
 {%        else %}
-{%          set my_args = value %}
+{%          set my_kwargs = value %}
 {%        endif %}
-{{        directive(dir_name, my_args, my_kwargs) }}{{ loop.last | ternary('', '\n') }}
-{%-     endif %}
-{%    endfor %}
+{%      else %}
+{%        set my_args = value %}
+{%      endif %}
+{{      directive(dir, my_args, my_kwargs) }}{{ loop.last | ternary('', '\n') }}
+{%-   endfor %}
 {%  endmacro -%}
