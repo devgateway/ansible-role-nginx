@@ -74,7 +74,7 @@
 
 {%  macro bulk_directives(context) %}
 {%    set keywords = ['location', 'locations', 'if', 'ifs'] %}
-{%    for dir in context.iterkeys() | difference(keywords) %}
+{%    for dir in context.iterkeys() | difference(keywords) | sort %}
 {%      set value = context[dir] %}
 {%      set my_args = [] %}
 {%      set my_kwargs = {} %}

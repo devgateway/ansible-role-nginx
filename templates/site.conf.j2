@@ -19,8 +19,8 @@
 {%    for ssl in [false, site.settings.server.ssl | default(true)] | unique %}
 {{      ('Redirect to the primary domain, ' ~ ssl | ternary('SSL', 'plain')) | comment }}
 {%      set content %}
-{{        ngx.directive('server_name', site.redirect_from) }}
 {{        ngx.directive('listen', ssl | ternary(443, 80)) }}
+{{        ngx.directive('server_name', site.redirect_from) }}
 {%        if ssl %}
 {{          ngx.directive('ssl', true) }}
 {%        endif %}
@@ -33,8 +33,8 @@
 {%  if site.settings.server.ssl | default(true) %}
 {{    'Redirect from non-SSL to SSL' | comment }}
 {%    set content %}
-{{      ngx.directive('server_name', site.settings.server.server_name) }}
 {{      ngx.directive('listen', 80) }}
+{{      ngx.directive('server_name', site.settings.server.server_name) }}
 {{      ngx.redirect(host = primary_name(), ssl = true) }}
 {%-   endset %}
 {{    ngx.block('server', content) }}{{ '\n' }}
