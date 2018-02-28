@@ -18,6 +18,8 @@
 {%    for key, val in my_kwargs | dictsort %}
 {%-     if val is sameas true %}
 {{        ' ' }}{{ key }}
+{%-     elif val is sequence and val is not string %}
+{{        ' ' }}{{ key }}={{ val | join(':') }}
 {%-     elif val is not sameas false %}
 {{        ' ' }}{{ key }}={{ val }}
 {%-     endif %}
