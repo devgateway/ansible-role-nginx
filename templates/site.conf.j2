@@ -42,12 +42,16 @@
 
 {%  set content %}
 {{    ngx.bulk_directives(site.settings.server | default({})) }}
-{%    for if_block in site.settings.server.ifs | default([]) %}
-{{      ngx.block(['if', '(%s)' | format(if_block.if)], bulk_directives(if_block)) }}
-{%    endfor %}
-{%    for location in site.settings.server.locations | default([]) %}
-{{      ngx.locations(location) }}
-{%    endfor %}
+{%    if site.settings.server.ifs is defined %}
+{%      for if_block in site.settings.server.ifs %}
+{{        ngx.block(['if', '(%s)' | format(if_block.if)], bulk_directives(if_block)) }}
+{%      endfor %}
+{%    endif %}
+{%    if site.settings.server.locations is defined %}
+{%      for location in site.settings.server.locations %}
+{{        ngx.locations(location) }}
+{%      endfor %}
+{%    endif %}
 {%- endset -%}
 
 {{ ngx.block('server', content) }}
