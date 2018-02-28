@@ -64,7 +64,7 @@
 
 {%  macro bulk_directives(context) %}
 {%    for dir_name, value in context | dictsort %}
-{%      if dir_name not in ['locations', 'ifs'] %}
+{%      if dir_name not in ['location', 'locations', 'if', 'ifs'] %}
 {%        set my_args = [] %}
 {%        set my_kwargs = {} %}
 {%        if value is mapping %}
