@@ -76,20 +76,19 @@
 {%    set keywords = ['location', 'locations', 'if', 'ifs'] %}
 {%    for dir in context.iterkeys() | difference(keywords) | sort %}
 {%      set value = context[dir] %}
-{%      set my_args = [] %}
-{%      set my_kwargs = {} %}
 {%      if value is mapping %}
 {%        if 'args' in value or 'kwargs' in value %}
-{%          set my_args = value.args | default([]) %}
-{%          set my_kwargs = value.kwargs | default({}) %}
-{%        elif ansible_os_family in value %}
-{%          set my_args = value[ansible_os_family] %}
-{%        else %}
-{%          set my_kwargs = value %}
-{%        endif %}
+{{          directive(dir, value.args | default([]), value.kwargs | default({})) }}
+{%-       elif ansible_os_family in value %}
+{{          directive(dir, value[ansible_os_family]) }}
+{%-       else %}
+{{          directive(dir, my_kwargs = value) }}
+{%-       endif %}
 {%      else %}
-{%        set my_args = value %}
-{%      endif %}
-{{      directive(dir, my_args, my_kwargs) ~ (loop.last | ternary('', '\n')) }}
+{{        directive(dir, value) }}
+{%-     endif %}
+{%      if not loop.last %}
+{{        '\n' }}
+{%-     endif %}
 {%-   endfor %}
 {%  endmacro -%}
