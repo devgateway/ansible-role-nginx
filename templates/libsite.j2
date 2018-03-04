@@ -1,0 +1,25 @@
+{% import 'libnginx.j2' as ngx with context -%}
+
+{%  macro locations(context) %}
+{%    set bulk = ngx.bulk_directives(context) %}
+{%    if context.ifs is defined %}
+{%      set ifs %}
+{%        for if_block in context.ifs %}
+{{          '\n' ~ block(['if', '(%s)' | format(if_block.if)], ngx.bulk_directives(if_block)) }}
+{%-       endfor %}
+{%      endset %}
+{%    else %}
+{%      set ifs = none %}
+{%    endif %}
+{%    if context.locations is defined %}
+{%      set locs %}
+{%        for location in context.locations %}
+{{          '\n' ~ locations(location) }}
+{%-       endfor %}
+{%      endset %}
+{%    else %}
+{%      set locs = none %}
+{%    endif %}
+{{    ngx.block(['location', context.location], [bulk, ifs, locs] | select | join('\n')) }}
+{%- endmacro -%}
+
