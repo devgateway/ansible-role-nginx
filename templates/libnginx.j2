@@ -46,7 +46,6 @@
 {%    set keywords = ['location', 'locations', 'if', 'ifs', 'maps', 'upstreams'] %}
 {%    for dir in context.iterkeys() | difference(keywords) | sort %}
 {%      set value = context[dir] %}
-{%      set line_printed = true %}
 {%      if value is mapping %}
 {%        if 'args' in value or 'kwargs' in value %}
 {{          directive(dir, value.args | default([]), value.kwargs | default({})) }}
@@ -73,11 +72,10 @@
 {%      elif allow_empty and value is sameas true %}
 {{        dir }};
 {%-     elif allow_empty and value is sameas false %}
-{%        set line_printed = false %}
 {%-     else %}
 {{        directive(dir, value) }}
 {%-     endif %}
-{%      if not loop.last and line_printed %}
+{%      if not loop.last %}
 {{        '\n' }}
 {%-     endif %}
 {%-   endfor %}
