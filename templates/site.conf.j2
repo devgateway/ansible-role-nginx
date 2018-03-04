@@ -1,19 +1,6 @@
 {% import 'libnginx.j2' as ngx with context -%}
 {% import 'libsite.j2' as libsite with context -%}
 
-{%  macro _primary_name() %}
-{%    if site.server.server_name is string %}
-{%      set n = site.server.server_name %}
-{%    else %}{# is sequence #}
-{%      set n = site.server.server_name[0] %}
-{%    endif %}
-{%    if n[0] == '.' %}
-{{      n | replace('.', '', 1) }}
-{%-   else %}
-{{      n }}
-{%-   endif %}
-{%  endmacro -%}
-
 {{ ngx.bulk_directives( site.http | default({})) }}
 {{ '\n' }}
 
@@ -30,7 +17,7 @@
 {%        if ssl %}
 {{          ngx.directive('ssl', true) }}
 {%        endif %}
-{{        libsite.redirect(host = _primary_name(), ssl = true) }}
+{{        libsite.redirect(host = libsite.primary_name(), ssl = true) }}
 {%-     endset %}
 {{      ngx.block('server', content) ~ '\n' }}
 {%    endfor %}
@@ -41,7 +28,7 @@
 {%    set content %}
 {{      ngx.directive('listen', 80) }}
 {{      ngx.directive('server_name', site.server.server_name) }}
-{{      libsite.redirect(host = _primary_name(), ssl = true) }}
+{{      libsite.redirect(host = libsite.primary_name(), ssl = true) }}
 {%-   endset %}
 {{    ngx.block('server', content) ~ '\n' }}
 {%  endif -%}

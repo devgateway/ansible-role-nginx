@@ -55,3 +55,16 @@
 {%-   endset %}
 {{    ngx.block(['map', _map.string, _map.var], content) }}
 {%- endmacro -%}
+
+{%  macro primary_name() %}
+{%    if site.server.server_name is string %}
+{%      set n = site.server.server_name %}
+{%    else %}{# is sequence #}
+{%      set n = site.server.server_name[0] %}
+{%    endif %}
+{%    if n[0] == '.' %}
+{{      n | replace('.', '', 1) }}
+{%-   else %}
+{{      n }}
+{%-   endif %}
+{%  endmacro -%}
