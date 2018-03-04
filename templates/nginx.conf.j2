@@ -1,6 +1,10 @@
 {%  import 'libnginx.j2' as ngx with context -%}
 
-{{  ngx.bulk_directives(ngx_settings.main | default({})) }}
+{%  set server_bulk = ngx.bulk_directives(ngx_settings.main | default({})) %}
+{%  if server_bulk %}
+{{    server_bulk }}
+{{    '\n' }}
+{%- endif -%}
 
 {%  for context in ['events', 'http'] %}
 {%    set content %}
