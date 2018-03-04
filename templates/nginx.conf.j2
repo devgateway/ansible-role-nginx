@@ -1,14 +1,13 @@
-{% import 'libnginx.j2' as ngx with context -%}
+{%  import 'libnginx.j2' as ngx with context -%}
 
-{{ ngx.bulk_directives(ngx_settings.main | default({})) }}
+{{  ngx.bulk_directives(ngx_settings.main | default({})) }}
 
-{% for context in ['events', 'http'] %}
-{{
-  ngx.block(
-    context,
-    ngx.bulk_directives(
-      ngx_settings[context] | default({})
-    )
-  )
-}}{{ loop.last | ternary('', '\n') }}
-{% endfor %}
+{%  for context in ['events', 'http'] %}
+{%    set content %}
+{{      ngx.bulk_directives(ngx_settings[context] | default({})) }}
+{%-   endset %}
+{{    ngx.block(context, content) }}
+{%-   if not loop.last %}
+{{      '\n' }}
+{%-   endif %}
+{%  endfor %}

@@ -1,8 +1,8 @@
-{% import 'libnginx.j2' as ngx with context -%}
-{% import 'libsite.j2' as libsite with context -%}
+{%  import 'libnginx.j2' as ngx with context -%}
+{%  import 'libsite.j2' as libsite with context -%}
 
-{{ ngx.bulk_directives( site.http | default({})) }}
-{{ '\n' }}
+{{  ngx.bulk_directives( site.http | default({})) }}
+{{  '\n' }}
 
 {%- for _map in site.http.maps | default([]) %}
 {{    libsite.map_block(_map) ~ '\n' }}
@@ -36,11 +36,13 @@
 {%- set content %}
 {{    ngx.bulk_directives(site.server | default({})) }}
 {%-   for if_block in site.server.ifs | default([]) %}
-{{      '\n\n' ~ ngx.block(['if', '(%s)' | format(if_block.if)], ngx.bulk_directives(if_block)) }}
+{{      '\n' }}
+{{      ngx.block(['if', '(%s)' | format(if_block.if)], ngx.bulk_directives(if_block)) }}
 {%-   endfor %}
 {%-   for location in site.server.locations | default([]) %}
-{{      '\n\n' ~ libsite.locations(location) }}
+{{      '\n' }}
+{{      libsite.locations(location) }}
 {%-   endfor %}
 {%  endset -%}
 
-{{ ngx.block('server', content) }}
+{{  ngx.block('server', content) }}
