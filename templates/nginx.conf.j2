@@ -1,4 +1,4 @@
-{% import 'ngxlib.j2' as ngx with context -%}
+{% import 'libnginx.j2' as ngx with context -%}
 
 {{ ngx.bulk_directives(ngx_settings.main | default({})) }}
 
