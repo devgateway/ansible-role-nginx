@@ -14,8 +14,13 @@
 {%  endmacro -%}
 
 {{ ngx.bulk_directives( site.settings.http | default({})) }}
+{{ '\n' }}
 
-{%  if site.redirect_from is defined %}
+{%- for _map in site.settings.http.maps | default([]) %}
+{{    ngx.map_block(_map) ~ '\n' }}
+{%  endfor -%}
+
+{%- if site.redirect_from is defined %}
 {%    for ssl in [false, site.settings.server.ssl | default(true)] | unique %}
 {{      ('Redirect to the primary domain, ' ~ ssl | ternary('SSL', 'plain')) | comment }}
 {%      set content %}
