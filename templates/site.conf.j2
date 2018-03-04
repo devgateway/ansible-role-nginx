@@ -4,8 +4,11 @@
 {%- set site_bulk = ngx.bulk_directives( site.http | default({})) %}
 
 {%- set site_maps %}
-{%-   for _map in site.http.maps | default([]) %}
-{{      libsite.map_block(_map) ~ '\n' }}
+{%-   for context in site.http.maps | default([]) %}
+{{      libsite.map_block(context) }}
+{%-     if not loop.last %}
+{{        '\n\n' }}
+{%-     endif %}
 {%    endfor -%}
 {%  endset %}
 
