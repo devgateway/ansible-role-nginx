@@ -2,10 +2,10 @@
 {% import 'libsite.j2' as libsite with context -%}
 
 {%  macro _primary_name() %}
-{%    if site.settings.server.server_name is string %}
-{%      set n = site.settings.server.server_name %}
+{%    if site.server.server_name is string %}
+{%      set n = site.server.server_name %}
 {%    else %}{# is sequence #}
-{%      set n = site.settings.server.server_name[0] %}
+{%      set n = site.server.server_name[0] %}
 {%    endif %}
 {%    if n[0] == '.' %}
 {{      n | replace('.', '', 1) }}
@@ -14,15 +14,15 @@
 {%-   endif %}
 {%  endmacro -%}
 
-{{ ngx.bulk_directives( site.settings.http | default({})) }}
+{{ ngx.bulk_directives( site.http | default({})) }}
 {{ '\n' }}
 
-{%- for _map in site.settings.http.maps | default([]) %}
+{%- for _map in site.http.maps | default([]) %}
 {{    libsite.map_block(_map) ~ '\n' }}
 {%  endfor -%}
 
 {%- if site.redirect_from is defined %}
-{%    for ssl in [false, site.settings.server.ssl | default(true)] | unique %}
+{%    for ssl in [false, site.server.ssl | default(true)] | unique %}
 {{      ('Redirect to the primary domain, ' ~ ssl | ternary('SSL', 'plain')) | comment }}
 {%      set content %}
 {{        ngx.directive('listen', ssl | ternary(443, 80)) }}
@@ -36,22 +36,22 @@
 {%    endfor %}
 {%  endif -%}
 
-{%- if site.settings.server.ssl | default(true) %}
+{%- if site.server.ssl | default(true) %}
 {{    'Redirect from non-SSL to SSL' | comment }}
 {%    set content %}
 {{      ngx.directive('listen', 80) }}
-{{      ngx.directive('server_name', site.settings.server.server_name) }}
+{{      ngx.directive('server_name', site.server.server_name) }}
 {{      libsite.redirect(host = _primary_name(), ssl = true) }}
 {%-   endset %}
 {{    ngx.block('server', content) ~ '\n' }}
 {%  endif -%}
 
 {%- set content %}
-{{    ngx.bulk_directives(site.settings.server | default({})) }}
-{%-   for if_block in site.settings.server.ifs | default([]) %}
+{{    ngx.bulk_directives(site.server | default({})) }}
+{%-   for if_block in site.server.ifs | default([]) %}
 {{      '\n\n' ~ ngx.block(['if', '(%s)' | format(if_block.if)], ngx.bulk_directives(if_block)) }}
 {%-   endfor %}
-{%-   for location in site.settings.server.locations | default([]) %}
+{%-   for location in site.server.locations | default([]) %}
 {{      '\n\n' ~ libsite.locations(location) }}
 {%-   endfor %}
 {%  endset -%}

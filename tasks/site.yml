@@ -3,10 +3,10 @@
   template:
     src: site.conf.j2
     dest: |-
-      {%  if site.settings.server.server_name is string %}
-      {%    set first_name = site.settings.server.server_name %}
+      {%  if site.server.server_name is string %}
+      {%    set first_name = site.server.server_name %}
       {%  else %}
-      {%    set first_name = site.settings.server.server_name[0] %}
+      {%    set first_name = site.server.server_name[0] %}
       {%  endif %}
       {%- if first_name[0] == '.' %}
       {%    set clean_name = first_name | replace('.', '', 1) %}
