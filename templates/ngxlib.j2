@@ -92,6 +92,13 @@
 {%-           endif %}
 {%          endfor %}
 {%-       endif %}
+{%      elif value is sequence and value[0] is sequence and value[0] is not string %}
+{%        for val in value[0] %}
+{{          directive(dir, val) }}
+{%-         if not loop.last %}
+{{            '\n' }}
+{%-         endif %}
+{%        endfor %}
 {%      else %}
 {{        directive(dir, value) }}
 {%-     endif %}
