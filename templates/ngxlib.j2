@@ -82,7 +82,15 @@
 {%-       elif ansible_os_family in value %}
 {{          directive(dir, value[ansible_os_family]) }}
 {%-       else %}
-{{          directive(dir, my_kwargs = value) }}
+{%          for key, val in value | dictsort %}
+{%            if val is not sequence or val is string %}
+{%              set val = [val] %}
+{%            endif %}
+{{            directive(dir, [key] + val) }}
+{%-           if not loop.last %}
+{{              '\n' }}
+{%-           endif %}
+{%          endfor %}
 {%-       endif %}
 {%      else %}
 {{        directive(dir, value) }}
