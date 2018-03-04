@@ -18,7 +18,7 @@
 {{ '\n' }}
 
 {%- for _map in site.settings.http.maps | default([]) %}
-{{    ngx.map_block(_map) ~ '\n' }}
+{{    libsite.map_block(_map) ~ '\n' }}
 {%  endfor -%}
 
 {%- if site.redirect_from is defined %}
@@ -30,7 +30,7 @@
 {%        if ssl %}
 {{          ngx.directive('ssl', true) }}
 {%        endif %}
-{{        ngx.redirect(host = _primary_name(), ssl = true) }}
+{{        libsite.redirect(host = _primary_name(), ssl = true) }}
 {%-     endset %}
 {{      ngx.block('server', content) ~ '\n' }}
 {%    endfor %}
@@ -41,7 +41,7 @@
 {%    set content %}
 {{      ngx.directive('listen', 80) }}
 {{      ngx.directive('server_name', site.settings.server.server_name) }}
-{{      ngx.redirect(host = _primary_name(), ssl = true) }}
+{{      libsite.redirect(host = _primary_name(), ssl = true) }}
 {%-   endset %}
 {{    ngx.block('server', content) ~ '\n' }}
 {%  endif -%}

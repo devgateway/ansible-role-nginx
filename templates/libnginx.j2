@@ -42,39 +42,6 @@
 {{    '}' }}
 {%- endmacro -%}
 
-{%  macro redirect(host, ssl = true, permanent = true, uri = '$request_uri') %}
-{%    set url %}
-{{      ssl | ternary('https', 'http') }}://{{ host ~ uri }}
-{%-   endset %}
-{{    directive('return', [permanent | ternary(301, 302), url]) }}
-{%- endmacro -%}
-
-{%  macro map_block(_map) %}
-{%    set special %}
-{%      if _map.hostnames | default(false) %}
-{{        'hostnames;' }}
-{%      endif %}
-{%      if _map.volatile | default(false) %}
-{{        'volatile;' }}
-{%      endif %}
-{%      if _map.default | default('') != "" %}
-{{        directive('default', _map.default) }}
-{%      endif %}
-{%-   endset %}
-{%    set content %}
-{%      if special %}
-{{        special }}
-{%      endif %}
-{%      for key, value in _map.map.iteritems() %}
-{{        key ~ ' ' ~ value }};
-{%-       if not loop.last %}
-{{          '\n' }}
-{%-       endif %}
-{%      endfor %}
-{%-   endset %}
-{{    block(['map', _map.string, _map.var], content) }}
-{%- endmacro -%}
-
 {%  macro bulk_directives(context) %}
 {%    set keywords = ['location', 'locations', 'if', 'ifs', 'maps', 'upstreams'] %}
 {%    for dir in context.iterkeys() | difference(keywords) | sort %}

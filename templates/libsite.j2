@@ -23,3 +23,35 @@
 {{    ngx.block(['location', context.location], [bulk, ifs, locs] | select | join('\n')) }}
 {%- endmacro -%}
 
+{%  macro redirect(host, ssl = true, permanent = true, uri = '$request_uri') %}
+{%    set url %}
+{{      ssl | ternary('https', 'http') }}://{{ host ~ uri }}
+{%-   endset %}
+{{    ngx.directive('return', [permanent | ternary(301, 302), url]) }}
+{%- endmacro -%}
+
+{%  macro map_block(_map) %}
+{%    set special %}
+{%      if _map.hostnames | default(false) %}
+{{        'hostnames;' }}
+{%      endif %}
+{%      if _map.volatile | default(false) %}
+{{        'volatile;' }}
+{%      endif %}
+{%      if _map.default | default('') != "" %}
+{{        ngx.directive('default', _map.default) }}
+{%      endif %}
+{%-   endset %}
+{%    set content %}
+{%      if special %}
+{{        special }}
+{%      endif %}
+{%      for key, value in _map.map.iteritems() %}
+{{        key ~ ' ' ~ value }};
+{%-       if not loop.last %}
+{{          '\n' }}
+{%-       endif %}
+{%      endfor %}
+{%-   endset %}
+{{    ngx.block(['map', _map.string, _map.var], content) }}
+{%- endmacro -%}
