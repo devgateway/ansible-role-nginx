@@ -12,6 +12,15 @@
 {%    endfor -%}
 {%  endset %}
 
+{%- set site_ups %}
+{%-   for name, context in site.http.upstreams.iteritems() %}
+{{      libsite.upstream(name, context) }}
+{%-     if not loop.last %}
+{{        '\n\n' }}
+{%-     endif %}
+{%    endfor -%}
+{%  endset %}
+
 {%- set site_redir %}
 {%-   if site.redirect_from is defined %}
 {%      for ssl in [false, site.server.ssl | default(true)] | unique %}
@@ -60,4 +69,4 @@
 {{    ngx.block('server', content) }}
 {%- endset -%}
 
-{{ [site_bulk, site_redir, site_ssl, site_main] | select | join('\n\n') }}
+{{  [site_bulk, site_ups, site_maps, site_redir, site_ssl, site_main] | select | join('\n\n') }}

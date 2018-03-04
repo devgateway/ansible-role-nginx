@@ -30,6 +30,10 @@
 {{    ngx.directive('return', [permanent | ternary(301, 302), url]) }}
 {%- endmacro -%}
 
+{%  macro upstream(name, context) %}
+{{    ngx.block(['upstream', name], ngx.bulk_directives(context, allow_empty = true)) }}
+{%- endmacro -%}
+
 {%  macro map_block(context) %}
 {%    set special %}
 {%      if context.hostnames | default(false) %}
