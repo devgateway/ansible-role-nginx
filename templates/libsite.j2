@@ -30,30 +30,30 @@
 {{    ngx.directive('return', [permanent | ternary(301, 302), url]) }}
 {%- endmacro -%}
 
-{%  macro map_block(_map) %}
+{%  macro map_block(context) %}
 {%    set special %}
-{%      if _map.hostnames | default(false) %}
+{%      if context.hostnames | default(false) %}
 {{        'hostnames;' }}
 {%      endif %}
-{%      if _map.volatile | default(false) %}
+{%      if context.volatile | default(false) %}
 {{        'volatile;' }}
 {%      endif %}
-{%      if _map.default | default('') != "" %}
-{{        ngx.directive('default', _map.default) }}
+{%      if context.default | default('') != "" %}
+{{        ngx.directive('default', context.default) }}
 {%      endif %}
 {%-   endset %}
 {%    set content %}
 {%      if special %}
 {{        special }}
 {%      endif %}
-{%      for key, value in _map.map.iteritems() %}
+{%      for key, value in context.map.iteritems() %}
 {{        key ~ ' ' ~ value }};
 {%-       if not loop.last %}
 {{          '\n' }}
 {%-       endif %}
 {%      endfor %}
 {%-   endset %}
-{{    ngx.block(['map', _map.string, _map.var], content) }}
+{{    ngx.block(['map', context.string, context.var], content) }}
 {%- endmacro -%}
 
 {%  macro primary_name() %}
