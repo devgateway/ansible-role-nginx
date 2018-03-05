@@ -13,8 +13,10 @@
       {%  else %}
       {%    set clean_name = first_name %}
       {%  endif %}
-      {%  if (site.server.listen | default(80)) != 80 %}
-      {%    set suffix = '-' ~ site.server.listen %}
+      {%  set default_port = site.server.ssl | default(false) | ternary(443, 80) %}
+      {%  set listen_port = site.server.listen | default(80) %}
+      {%  if listen_port != default_port %}
+      {%    set suffix = '-' ~ listen_port %}
       {%  else %}
       {%    set suffix = '' %}
       {%  endif %}
