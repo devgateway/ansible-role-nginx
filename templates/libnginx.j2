@@ -42,7 +42,7 @@
 {{    '}' }}
 {%- endmacro -%}
 
-{%  macro _format_directive(dir, value, allow_empty) %}
+{%  macro _guess_syntax(dir, value, allow_empty) %}
 {%    if value is mapping %}
 {%      if 'args' in value or 'kwargs' in value %}
 {{        directive(dir, value.args | default([]), value.kwargs | default({})) }}
@@ -64,7 +64,7 @@
 {%-   elif allow_empty and value is sameas false %}
 {%    elif value is sequence and value[0] is sequence and value[0] is not string %}
 {%      for val in value[0] %}
-{{        _format_directive(dir, val, allow_empty) }}
+{{        _guess_syntax(dir, val, allow_empty) }}
 {%-       if not loop.last %}
 {{          '\n' }}
 {%-       endif %}
@@ -77,7 +77,7 @@
 {%  macro bulk_directives(context, allow_empty = false) %}
 {%    set keywords = ['location', 'locations', 'if', 'ifs', 'maps', 'upstreams'] %}
 {%    for dir in context.iterkeys() | difference(keywords) | sort %}
-{%      set result = _format_directive(dir, context[dir], allow_empty) %}
+{%      set result = _guess_syntax(dir, context[dir], allow_empty) %}
 {%      if result %}
 {%        if not loop.first %}
 {{          '\n' }}
