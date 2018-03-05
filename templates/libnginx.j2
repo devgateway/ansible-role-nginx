@@ -42,40 +42,44 @@
 {{    '}' }}
 {%- endmacro -%}
 
-{%  macro bulk_directives(context, allow_empty = false) %}
-{%    set keywords = ['location', 'locations', 'if', 'ifs', 'maps', 'upstreams'] %}
-{%    for dir in context.iterkeys() | difference(keywords) | sort %}
-{%      set value = context[dir] %}
-{%      if value is mapping %}
-{%        if 'args' in value or 'kwargs' in value %}
-{{          directive(dir, value.args | default([]), value.kwargs | default({})) }}
-{%-       elif ansible_os_family in value %}
-{{          directive(dir, value[ansible_os_family]) }}
-{%-       else %}
-{%          for key, val in value | dictsort %}
-{%            if val is not sequence or val is string %}
-{%              set val = [val] %}
-{%            endif %}
-{{            directive(dir, [key] + val) }}
-{%-           if not loop.last %}
-{{              '\n' }}
-{%-           endif %}
-{%          endfor %}
-{%-       endif %}
-{%      elif value is sequence and value[0] is sequence and value[0] is not string %}
-{%        for val in value[0] %}
-{{          directive(dir, val) }}
+{%  macro _format_directive(dir, value, allow_empty) %}
+{%    if value is mapping %}
+{%      if 'args' in value or 'kwargs' in value %}
+{{        directive(dir, value.args | default([]), value.kwargs | default({})) }}
+{%-     elif ansible_os_family in value %}
+{{        directive(dir, value[ansible_os_family]) }}
+{%-     else %}
+{%        for key, val in value | dictsort %}
+{%          if val is not sequence or val is string %}
+{%            set val = [val] %}
+{%          endif %}
+{{          directive(dir, [key] + val) }}
 {%-         if not loop.last %}
 {{            '\n' }}
 {%-         endif %}
 {%        endfor %}
-{%      elif allow_empty and value is sameas true %}
-{{        dir }};
-{%-     elif allow_empty and value is sameas false %}
-{%-     else %}
-{{        directive(dir, value) }}
 {%-     endif %}
-{%      if not loop.last %}
+{%    elif allow_empty and value is sameas true %}
+{{      dir }};
+{%-   elif allow_empty and value is sameas false %}
+{%    elif value is sequence and value[0] is sequence and value[0] is not string %}
+{%      for val in value[0] %}
+{{        _format_directive(dir, val, allow_empty) }}
+{%-       if not loop.last %}
+{{          '\n' }}
+{%-       endif %}
+{%      endfor %}
+{%    else %}
+{{      directive(dir, value) }}
+{%-   endif %}
+{%- endmacro -%}
+
+{%  macro bulk_directives(context, allow_empty = false) %}
+{%    set keywords = ['location', 'locations', 'if', 'ifs', 'maps', 'upstreams'] %}
+{%    for dir in context.iterkeys() | difference(keywords) | sort %}
+{%      set value = context[dir] %}
+{{      _format_directive(dir, value, allow_empty) }}
+{%-     if not loop.last %}
 {{        '\n' }}
 {%-     endif %}
 {%-   endfor %}
