@@ -6,7 +6,7 @@
 {%- set site_maps %}
 {%    if site.http is defined %}
 {%      for context in site.http.maps | default([]) %}
-{{        libsite.map_block(context) }}
+{{        libsite.map(context) }}
 {%-       if not loop.last %}
 {{          '\n\n' }}
 {%-       endif %}

@@ -34,7 +34,7 @@
 {{    ngx.block(['upstream', name], ngx.bulk_directives(context, allow_empty = true)) }}
 {%- endmacro -%}
 
-{%  macro map_block(context) %}
+{%  macro map(context) %}
 {%    set special %}
 {%      if context.hostnames | default(false) %}
 {{        'hostnames;' }}
