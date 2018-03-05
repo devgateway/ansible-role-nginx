@@ -13,4 +13,9 @@
       {%  else %}
       {%    set clean_name = first_name %}
       {%  endif %}
-      {{  ngx_config_dir }}/{{ clean_name }}.conf
+      {%  if (site.server.listen | default(80)) != 80 %}
+      {%    set suffix = '-' ~ site.server.listen %}
+      {%  else %}
+      {%    set suffix = '' %}
+      {%  endif %}
+      {{  ngx_config_dir }}/{{ clean_name }}{{ suffix }}.conf
