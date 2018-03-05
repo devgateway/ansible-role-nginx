@@ -1,4 +1,4 @@
-{% import 'libnginx.j2' as ngx with context -%}
+{%  import 'libnginx.j2' as ngx with context -%}
 
 {%  macro locations(context) %}
 {%    set bulk = ngx.bulk_directives(context) %}
