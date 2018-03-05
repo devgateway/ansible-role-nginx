@@ -13,8 +13,8 @@
 {%  endset %}
 
 {%- set site_ups %}
-{%-   for name, context in site.http.upstreams.iteritems() %}
-{{      libsite.upstream(name, context) }}
+{%    for name in site.http.upstreams | default({}) %}
+{{      libsite.upstream(name, site.http.upstreams[name]) }}
 {%-     if not loop.last %}
 {{        '\n\n' }}
 {%-     endif %}
