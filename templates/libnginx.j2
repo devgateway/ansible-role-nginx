@@ -77,10 +77,12 @@
 {%  macro bulk_directives(context, allow_empty = false) %}
 {%    set keywords = ['location', 'locations', 'if', 'ifs', 'maps', 'upstreams'] %}
 {%    for dir in context.iterkeys() | difference(keywords) | sort %}
-{%      set value = context[dir] %}
-{{      _format_directive(dir, value, allow_empty) }}
-{%-     if not loop.last %}
-{{        '\n' }}
+{%      set result = _format_directive(dir, context[dir], allow_empty) %}
+{%      if result %}
+{%        if not loop.first %}
+{{          '\n' }}
+{%-       endif %}
+{{        result }}
 {%-     endif %}
 {%-   endfor %}
 {%  endmacro -%}
