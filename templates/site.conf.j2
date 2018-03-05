@@ -4,21 +4,25 @@
 {%- set site_bulk = ngx.bulk_directives( site.http | default({})) %}
 
 {%- set site_maps %}
-{%-   for context in site.http.maps | default([]) %}
-{{      libsite.map_block(context) }}
-{%-     if not loop.last %}
-{{        '\n\n' }}
-{%-     endif %}
-{%    endfor -%}
+{%    if site.http is defined %}
+{%      for context in site.http.maps | default([]) %}
+{{        libsite.map_block(context) }}
+{%-       if not loop.last %}
+{{          '\n\n' }}
+{%-       endif %}
+{%      endfor %}
+{%    endif %}
 {%  endset %}
 
 {%- set site_ups %}
-{%    for name in site.http.upstreams | default({}) %}
-{{      libsite.upstream(name, site.http.upstreams[name]) }}
-{%-     if not loop.last %}
-{{        '\n\n' }}
-{%-     endif %}
-{%    endfor -%}
+{%    if site.http is defined %}
+{%      for name in site.http.upstreams | default({}) %}
+{{        libsite.upstream(name, site.http.upstreams[name]) }}
+{%-       if not loop.last %}
+{{          '\n\n' }}
+{%-       endif %}
+{%      endfor -%}
+{%    endif %}
 {%  endset %}
 
 {%- set site_redir %}
