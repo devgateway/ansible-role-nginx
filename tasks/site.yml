@@ -20,4 +20,4 @@
       {%  else %}
       {%    set suffix = '' %}
       {%  endif %}
-      {{  ngx_config_dir }}/{{ clean_name }}{{ suffix }}.conf
+      {{  ngx_config_dir }}/{{ ngx_site_base_name | default(clean_name ~ suffix  ~ '.conf') }}
