@@ -33,4 +33,9 @@ The role grammar is based on [Nginx configuration *contexts*](http://nginx.org/e
 
 ## Daemon Configuration Mode (`nginx.conf`)
 
+This mode uses a dictionary called `ngx_settings`, representing `main` context. All members are optional. Possible nested contexts:
 
+* `events`
+* `http`
+
+## Site Configuration Mode (`conf.d/`*`site`*`.conf`)
