@@ -33,9 +33,16 @@ The role grammar is based on [Nginx configuration *contexts*](http://nginx.org/e
 
 ## Daemon Configuration Mode (`nginx.conf`)
 
-This mode uses a dictionary called `ngx_settings`, representing `main` context. All members are optional. Possible nested contexts:
+This mode uses a dictionary called `ngx_settings`. All members are optional contexts:
 
+* `main`
 * `events`
 * `http`
+
+### Optional Variable: `ngx_config_path`
+
+Path to Nginx main configuration file. Its grammar will be verified with `nginx -tc`, so if you include `conf.d` configs, run this mode *after* you configure each site.
+
+Default: `/etc/nginx/nginx.conf`
 
 ## Site Configuration Mode (`conf.d/`*`site`*`.conf`)
