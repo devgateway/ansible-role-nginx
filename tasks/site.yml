@@ -9,15 +9,8 @@
       {%    set first_name = site.server.server_name[0] %}
       {%  endif %}
       {%- if first_name[0] == '.' %}
-      {%    set clean_name = first_name | replace('.', '', 1) %}
+      {%    set base_name = (first_name | replace('.', '', 1)) ~ '.conf' %}
       {%  else %}
-      {%    set clean_name = first_name %}
+      {%    set base_name = first_name ~ '.conf' %}
       {%  endif %}
-      {%  set default_port = site.server.ssl | default(false) | ternary(443, 80) %}
-      {%  set listen_port = site.server.listen | default(80) %}
-      {%  if listen_port != default_port %}
-      {%    set suffix = '-' ~ listen_port %}
-      {%  else %}
-      {%    set suffix = '' %}
-      {%  endif %}
-      {{  ngx_config_dir }}/{{ ngx_site_base_name | default(clean_name ~ suffix  ~ '.conf') }}
+      {{  ngx_config_dir }}/{{ ngx_site_base_name | default(base_name) }}
