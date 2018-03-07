@@ -134,9 +134,21 @@ This mode uses a dictionary called `ngx_settings`. All members are optional cont
 * `events`
 * `http`
 
+Example:
+
+    ngx_settings:
+      main:
+        user:
+          RedHat: nginx
+          Debian: www-data
+      events:
+        worker_connections: 1024
+      http:
+        include: conf.d/*.conf
+
 ### Optional Variable: `ngx_config_path`
 
-Path to Nginx main configuration file. Its grammar will be verified with `nginx -tc`, so if you include `conf.d` configs, run this mode *after* you configure each site.
+Path to Nginx main configuration file. Its grammar will be verified with `nginx -tc`, so if you include `conf.d` configs, run this mode *after* you configure all sites.
 
 Default: `/etc/nginx/nginx.conf`
 
@@ -164,9 +176,28 @@ This context is a list of dictionaries, each representing a [`map` block](http:/
 * `var` - the second argument, dollar sign before the variable name may be omitted;
 * `map` - dictionary, keys and values of the map.
 
+Example:
+
+    maps:
+      - string: "$http_user_agent"
+        var: compatible_browser
+        default: 1
+        map:
+          "~MSIE": 0
+          "~Lynx": 1
+
 ### `upstreams` Context
 
 This context is a dictionary. Keys are upstream names, values are dictionaries of their directives.
+
+Example:
+
+    upstreams:
+      backend:
+        ip_hash: true
+        server:
+          - - http://localhost:9001
+            - http://otherhost:9001
 
 ### Redirect Servers
 
@@ -178,4 +209,20 @@ Additionally, if SSL is enabled for the main site, the third `server` block is g
 
 The main server block may contain an `ifs` member (a list of dictionaries), representing `if` blocks. Each of those blocks must contain at least an `if` member - the conditional expression.
 
+Example:
+
+    server:
+      ifs:
+        - if: $http_referer ~ mallory\.example\.com
+          return: 403
+
 The main server block may also contain a `locations` member (also a list of dictionaries). Each of those must contain at least a `location` member (which may also include matching operators like `~` or `=`), and may contain nested `locations` members, as well as `ifs`.
+
+Example:
+
+    server:
+      locations:
+        - location: /scripts
+          locations:
+            - location: ~ \.php$
+              fastcgi_pass: unix:/var/run/php
