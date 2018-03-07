@@ -63,6 +63,18 @@ Dictionary members are expanded into Nginx directives, so that the key becomes t
 
         server_name bob.example.org alice.example.org;
 
+*   However, if the first value of the **list** is also a list, only that one is evaluated. It yields multiple directives, with each value expanded as per these rules:
+
+        fastcgi_hide_header:
+          - - X-Drupal-Version
+            - Debian: X-Debug-Dpkg
+              RedHat: X-Debug-Rpm
+
+    in Debian becomes:
+
+        fastcgi_hide_header X-Drupal-Version;
+        fastcgi_hide_header X-Debug-Dpkg;
+
 *   If a **dictionary** contains special members `args` (list) or `kwargs` (dictionary), they become positional and keyworded arguments, respectively. Keyworded arguments get sorted; positional don't. Keyworded arguments that are lists, are joined using a colon:
 
         proxy_cache_path:
@@ -82,7 +94,7 @@ Dictionary members are expanded into Nginx directives, so that the key becomes t
 
         proxy_cache_path /var/cache/nginx/php inactive=14d keys_zone=php:40m levels=1:2 max_size=512m;
 
-*   If the **dictionary** contains a key which is the same as `ansible_os_family` value, then its value is expanded further:
+*   If the **dictionary** contains a key which is the same as `ansible_os_family` value, then its value is expanded further, according to these rules:
 
         ssl_certificate_key:
           Debian: /etc/ssl/private/snakeoil.pem
