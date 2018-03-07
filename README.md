@@ -163,3 +163,7 @@ This context is a list of dictionaries, each representing a [`map` block](http:/
 * `string` - the first argument of Nginx `map` directive, the string being evaluated;
 * `var` - the second argument, dollar sign before the variable name may be omitted;
 * `map` - dictionary, keys and values of the map.
+
+### `upstreams` Context
+
+This context is a dictionary. Keys are upstream names, values are dictionaries of their directives.
