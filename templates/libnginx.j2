@@ -47,7 +47,7 @@
 {%      if 'args' in value or 'kwargs' in value %}
 {{        directive(dir, value.args | default([]), value.kwargs | default({})) }}
 {%-     elif ansible_os_family in value %}
-{{        directive(dir, value[ansible_os_family]) }}
+{{        _guess_syntax(dir, value[ansible_os_family], allow_empty) }}
 {%-     else %}
 {%        for key, val in value | dictsort %}
 {{          _guess_syntax(dir ~ ' ' ~ key, val, allow_empty) }}
