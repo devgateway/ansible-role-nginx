@@ -50,10 +50,7 @@
 {{        directive(dir, value[ansible_os_family]) }}
 {%-     else %}
 {%        for key, val in value | dictsort %}
-{%          if val is not sequence or val is string %}
-{%            set val = [val] %}
-{%          endif %}
-{{          directive(dir, [key] + val) }}
+{{          _guess_syntax(dir ~ ' ' ~ key, val, allow_empty) }}
 {%-         if not loop.last %}
 {{            '\n' }}
 {%-         endif %}
