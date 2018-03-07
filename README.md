@@ -33,7 +33,9 @@ The role grammar is based on [Nginx configuration *contexts*](http://nginx.org/e
 
 ## Role Grammar
 
-Dictionary members are expanded into Nginx directives, so that the key becomes the directive name, and the value - its arguments. Directives, except blocks, are output in alphabetical order. The following rules are used for the values:
+Dictionary members are expanded into Nginx directives, so that the key becomes the directive name, and the value - its arguments. Directives, except blocks, are output in alphabetical order. Certain key names are special, those are described below. The following rules are used for the values.
+
+### Scalars
 
 *   **Integers** are printed verbatim.
 
@@ -53,6 +55,8 @@ Dictionary members are expanded into Nginx directives, so that the key becomes t
 
         ssl on;
 
+### Lists
+
 *   Simple **lists** become positional arguments, maintaining the given order:
 
         server_name:
@@ -67,13 +71,15 @@ Dictionary members are expanded into Nginx directives, so that the key becomes t
 
         fastcgi_hide_header:
           - - X-Drupal-Version
-            - Debian: X-Debug-Dpkg
-              RedHat: X-Debug-Rpm
+            - Debian: X-Dpkg
+              RedHat: X-Rpm
 
     in Debian becomes:
 
         fastcgi_hide_header X-Drupal-Version;
-        fastcgi_hide_header X-Debug-Dpkg;
+        fastcgi_hide_header X-Dpkg;
+
+### Dictionaries
 
 *   If a **dictionary** contains special members `args` (list) or `kwargs` (dictionary), they become positional and keyworded arguments, respectively. Keyworded arguments get sorted; positional don't. Keyworded arguments that are lists, are joined using a colon:
 
