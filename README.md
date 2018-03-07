@@ -67,7 +67,7 @@ Dictionary members are expanded into Nginx directives, so that the key becomes t
 
         server_name bob.example.org alice.example.org;
 
-*   However, if the first value of the **list** is also a list, only that one is evaluated. It yields multiple directives, with each value expanded as per these rules:
+*   However, if the first value of a **list** is also a list, only that child list is evaluated. It yields multiple directives, with each value expanded as per these rules:
 
         fastcgi_hide_header:
           - - X-Drupal-Version
@@ -100,7 +100,7 @@ Dictionary members are expanded into Nginx directives, so that the key becomes t
 
         proxy_cache_path /var/cache/nginx/php inactive=14d keys_zone=php:40m levels=1:2 max_size=512m;
 
-*   If the **dictionary** contains a key which is the same as `ansible_os_family` value, then its value is expanded further, according to these rules:
+*   If a **dictionary** contains a key which is the same as `ansible_os_family` value, then its value is expanded further, according to these rules:
 
         ssl_certificate_key:
           Debian: /etc/ssl/private/snakeoil.pem
@@ -110,7 +110,7 @@ Dictionary members are expanded into Nginx directives, so that the key becomes t
 
         ssl_certificate_key /etc/ssl/private/snakeoil.pem;
 
-*   Otherwise, the **dictionary** expands to multiple directives, keys becoming the first positional argument, and values expanded further as described above:
+*   Otherwise, a **dictionary** expands to multiple directives, keys becoming the first positional argument, and values expanded further as described above:
 
         access_log:
           /var/log/nginx/access.log: common
@@ -173,3 +173,9 @@ This context is a dictionary. Keys are upstream names, values are dictionaries o
 Depending on the main server SSL settings, one or two (SSL-enabled and plaintext) extra `server` blocks are generated. Each contains nothing but unconditional permanent redirect to the main server. The logic of main server domain name detection is described below.
 
 Additionally, if SSL is enabled for the main site, the third `server` block is generated, with the same `server_name` as the main server. This block contains a permanent redirect from plaintext site to SSL.
+
+### Main Server Block
+
+The main server block may contain an `ifs` member (a list of dictionaries), representing `if` blocks. Each of those blocks must contain at least an `if` member - the conditional expression.
+
+The main server block may also contain a `locations` member (also a list of dictionaries). Each of those must contain at least a `location` member (which may also include matching operators like `~` or `=`), and may contain nested `locations` members, as well as `ifs`.
