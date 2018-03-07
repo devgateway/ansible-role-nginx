@@ -82,6 +82,16 @@ Dictionary members are expanded into Nginx directives, so that the key becomes t
 
         proxy_cache_path /var/cache/nginx/php inactive=14d keys_zone=php:40m levels=1:2 max_size=512m;
 
+*   If the **dictionary** contains a key which is the same as `ansible_os_family` value, then its value is expanded further:
+
+        ssl_certificate_key:
+          Debian: /etc/ssl/private/snakeoil.pem
+          RedHat: /etc/pki/tls/certs/snakeoil.pem
+
+    in Debian becomes:
+
+        ssl_certificate_key /etc/ssl/private/snakeoil.pem;
+
 *   Otherwise, the **dictionary** expands to multiple directives, keys becoming the first positional argument, and values expanded further as described above:
 
         access_log:
