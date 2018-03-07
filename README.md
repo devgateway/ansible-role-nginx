@@ -167,3 +167,9 @@ This context is a list of dictionaries, each representing a [`map` block](http:/
 ### `upstreams` Context
 
 This context is a dictionary. Keys are upstream names, values are dictionaries of their directives.
+
+### Redirect Servers
+
+Depending on the main server SSL settings, one or two (SSL-enabled and plaintext) extra `server` blocks are generated. Each contains nothing but unconditional permanent redirect to the main server. The logic of main server domain name detection is described below.
+
+Additionally, if SSL is enabled for the main site, the third `server` block is generated, with the same `server_name` as the main server. This block contains a permanent redirect from plaintext site to SSL.
