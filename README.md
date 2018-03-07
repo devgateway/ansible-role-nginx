@@ -141,3 +141,17 @@ Path to Nginx main configuration file. Its grammar will be verified with `nginx 
 Default: `/etc/nginx/nginx.conf`
 
 ## Site Configuration Mode (`conf.d/`*`site`*`.conf`)
+
+This mode uses a dictionary called `site`. The following members are special:
+
+* `server` is the only required context. This will be referred to hereinafter as the main server.
+
+* `redirect_from` is an optional list of `server_name`'s. Each will yield a `server` block with a redirect to the main server. See Redirect Servers below for details.
+
+* Other recognized contexts are `http`, `maps`, and `upstreams`. Each is described below.
+
+### `http` Context
+
+These directives appear in the beginning of the file, and belong to the `http` context of Nginx configuration, where the file is `include`'d.
+
+### `maps` Context
