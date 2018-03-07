@@ -57,7 +57,8 @@
 {%-       endif %}
 {%      endfor %}
 {%-   endset %}
-{{    ngx.block(['map', context.string, context.var], content) }}
+{%    set prefix = (context.var[0] == '$') | ternary('', '$') %}
+{{    ngx.block(['map', context.string, prefix ~ context.var], content) }}
 {%- endmacro -%}
 
 {%  macro primary_name() %}
