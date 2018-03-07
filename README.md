@@ -155,3 +155,11 @@ This mode uses a dictionary called `site`. The following members are special:
 These directives appear in the beginning of the file, and belong to the `http` context of Nginx configuration, where the file is `include`'d.
 
 ### `maps` Context
+
+This context is a list of dictionaries, each representing a [`map` block](http://nginx.org/en/docs/http/ngx_http_map_module.html#map). The following members are recognized in a dictionary:
+
+* `hostnames` and `volatile` - booleans;
+* `default` - scalar;
+* `string` - the first argument of Nginx `map` directive, the string being evaluated;
+* `var` - the second argument, dollar sign before the variable name may be omitted;
+* `map` - dictionary, keys and values of the map.
