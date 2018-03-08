@@ -227,3 +227,45 @@ Example:
           locations:
             - location: ~ \.php$
               fastcgi_pass: unix:/var/run/php
+
+## Certificate/DH Mode
+
+This mode uses at least two variables: `ngx_key` and `ngx_cert` which are the private key and the certificate, respectively.
+
+### Optional Variables
+
+* `ngx_keypair_name` sets the base name (without extension) for the key and the certificate, and defaults to *nginx*.
+
+* `ngx_cert_chain` can be either a list of certificates in the chain (from intermediate to root CA), or a string with the said chain prebuilt.
+
+* `ngx_dhparam_bits` is the length of DH parameter to generated, default is 2048.
+
+* `ngx_key_dir`, `ngx_cert_dir`, and `ngx_dhparam_path` are dictionaries with `ansible_os_family` as keys, and define default directories and filename for the above.
+
+Playbook example:
+
+    - hosts: webservers
+      tasks:
+        - name: Install key pair
+          import_role:
+            name: devgateway.nginx
+            tasks_from: certificate
+          vars:
+            ngx_keypair_name: snakeoil
+            ngx_key: |-
+              -----BEGIN RSA PRIVATE KEY-----
+              My private key
+              -----END RSA PRIVATE KEY-----
+            ngx_cert: |-
+              -----BEGIN CERTIFICATE-----
+              My certificate
+              -----END CERTIFICATE-----
+            ngx_cert_chain:
+              - |-
+                -----BEGIN CERTIFICATE-----
+                Intermediate vendor
+                -----END CERTIFICATE-----
+              - |-
+                -----BEGIN CERTIFICATE-----
+                Root CA
+                -----END CERTIFICATE-----
