@@ -1,75 +1,11 @@
 ---
 ngx_config_path: /etc/nginx/nginx.conf
 ngx_config_dir: /etc/nginx/conf.d
-ngx_cache_dir:
-  RedHat: /var/cache/nginx
-  Debian: /var/cache/nginx
-ngx_cache_dir_owner:
-  RedHat: nginx
-  Debian: www-data
-ngx_cache_dir_group:
-  RedHat: nginx
-  Debian: www-data
-ngx_ssl_cert_path:
-  RedHat: /etc/pki/tls/certs/nginx.crt
-ngx_ssl_key_path:
-  RedHat: /etc/pki/tls/private/nginx.pem
-ngx_ssl_dhparam_path:
+ngx_cert_dir:
+  RedHat: /etc/pki/tls/certs
+ngx_key_dir:
+  RedHat: /etc/pki/tls/private
+ngx_dhparam_path:
   RedHat: /etc/pki/tls/misc/dhparam.pem
-ngx_log_level: warn
-ngx_worker_connections: 1024
-ngx_log_formats:
-  main: >-
-    $remote_addr $remote_user [$time_local] "$request" $status $body_bytes_sent
-    "$http_referer" "$http_user_agent" "$http_x_forwarded_for"
-  proxy: >-
-    [$time_local] $status $server_name $proxy_host "$request_method $request_uri" $http_referer
-  short: >-
-    [$time_local] $remote_addr $request_uri $http_referer
-ngx_access_log: /var/log/nginx/access.log main
-ngx_core:
-  sendfile: true
-  tcp_nopush: true
-  keepalive_timeout: 65
-ngx_gzip:
-  http_version: "1.0"
-  vary: true
-  types:
-    - application/javascript
-    - application/json
-    - application/x-javascript
-    - application/xml
-    - application/xml+rss
-    - image/svg+xml
-    - text/css
-    - text/javascript
-    - text/plain
-    - text/xml
-ngx_ssl:
-  session_timeout: 5m
-  ciphers:
-    - '!3DES'
-    - '!DSS'
-    - '!EXP'
-    - '!LOW'
-    - '!MD5'
-    - '!PSK'
-    - '!RC4'
-    - '!SRP'
-    - '!aNULL'
-    - '!eNULL'
-    - EDH+aRSA
-    - EECDH
-    - EECDH+ECDSA+AESGCM
-    - EECDH+ECDSA+SHA256
-    - EECDH+aRSA+AESGCM
-    - EECDH+aRSA+RC4
-    - EECDH+aRSA+SHA256
-  protocols:
-    - TLSv1
-    - TLSv1.1
-    - TLSv1.2
-  prefer_server_ciphers: true
-  session_cache: shared:SSL:10m
-ngx_keep_host_header: true
-ngx_proxied_to: true
+ngx_keypair_name: nginx
+ngx_dhparam_bits: 2048
