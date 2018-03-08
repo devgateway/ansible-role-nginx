@@ -1,23 +1,30 @@
 ---
 - name: Install private key
   copy:
-    dest: "{{ key_path }}"
+    dest: "{{ ngx_key_dir[ansible_os_family] }}/{{ ngx_keypair_name }}.pem"
     mode: 0660
-    content: |
-      {{ key }}
+    content: "{{ ngx_key }}"
   notify: Reload Nginx
 
 - name: Install certificate
   copy:
-    dest: "{{ cert_path }}"
+    dest: "{{ ngx_cert_dir[ansible_os_family] }}/{{ ngx_keypair_name }}.crt"
     mode: 0660
     content: |
-      {{ cert }}
-      {% if chain is string %}
-      {{ chain }}
-      {% else %}
-      {% for intermediate in chain %}
-      {{ intermediate }}
-      {% endfor %}
-      {% endif %}
+      {{  ngx_cert }}
+      {%  if ngx_cert_chain is defined %}
+      {%    if ngx_cert_chain is string %}
+      {{      ngx_cert_chain }}
+      {%    else %}
+      {%      for intermediate in ngx_cert_chain %}
+      {{        intermediate }}
+      {%      endfor %}
+      {%    endif %}
+      {%  endif %}
+  notify: Reload Nginx
+
+- name: Generate random Diffie-Hellmann params
+  command: openssl dhparam -out {{ ngx_dhparam_path[ansible_os_family] }} {{ ngx_dhparam_bits }}
+  args:
+    creates: "{{ ngx_dhparam_path[ansible_os_family] }}"
   notify: Reload Nginx
