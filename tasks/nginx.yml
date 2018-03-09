@@ -1,9 +1,4 @@
 ---
-- name: Install Nginx package
-  package:
-    name: nginx
-    state: installed
-
 - name: Configure Nginx server
   template:
     src: nginx.conf.j2
