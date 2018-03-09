@@ -4,12 +4,17 @@
 {{    ngx.bulk_directives(ngx_settings.main) ~ '\n\n' }}
 {%- endif -%}
 
-{%  for context in ['events', 'http'] %}
-{%    set content %}
-{{      ngx.bulk_directives(ngx_settings[context] | default({})) }}
-{%-   endset %}
-{{    ngx.block(context, content) }}
-{%-   if not loop.last %}
-{{      '\n\n' }}
-{%-   endif %}
-{%  endfor %}
+{%  set content %}
+{{    ngx.bulk_directives(ngx_settings.events | default({})) }}
+{%- endset %}
+{{  ngx.block('events', content) }}
+
+{%  set content %}
+{{    ngx.directive('include', (ngx_config_path | dirname) ~ '/mime.types') }}
+{%    if ngx_settings.http.log_format is defined %}
+{{      ngx.guess_syntax('log_format', ngx_settings.http.log_format, allow_empty = false) }}
+{%    endif %}
+{{    ngx.bulk_directives(ngx_settings.http | default({})) }}
+{{    ngx.directive('include', ngx_config_dir ~ '/*.conf') }}
+{%- endset %}
+{{  ngx.block('http', content) }}

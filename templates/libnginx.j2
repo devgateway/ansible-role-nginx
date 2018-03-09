@@ -42,15 +42,15 @@
 {{    '}' }}
 {%- endmacro -%}
 
-{%  macro _guess_syntax(dir, value, allow_empty) %}
+{%  macro guess_syntax(dir, value, allow_empty) %}
 {%    if value is mapping %}
 {%      if 'args' in value or 'kwargs' in value %}
 {{        directive(dir, value.args | default([]), value.kwargs | default({})) }}
 {%-     elif ansible_os_family in value %}
-{{        _guess_syntax(dir, value[ansible_os_family], allow_empty) }}
+{{        guess_syntax(dir, value[ansible_os_family], allow_empty) }}
 {%-     else %}
 {%        for key, val in value | dictsort %}
-{{          _guess_syntax(dir ~ ' ' ~ key, val, allow_empty) }}
+{{          guess_syntax(dir ~ ' ' ~ key, val, allow_empty) }}
 {%-         if not loop.last %}
 {{            '\n' }}
 {%-         endif %}
@@ -61,7 +61,7 @@
 {%-   elif allow_empty and value is sameas false %}
 {%    elif value is sequence and value[0] is sequence and value[0] is not string %}
 {%      for val in value[0] %}
-{{        _guess_syntax(dir, val, allow_empty) }}
+{{        guess_syntax(dir, val, allow_empty) }}
 {%-       if not loop.last %}
 {{          '\n' }}
 {%-       endif %}
@@ -72,9 +72,19 @@
 {%- endmacro -%}
 
 {%  macro bulk_directives(context, allow_empty = false) %}
-{%    set keywords = ['location', 'locations', 'if', 'ifs', 'maps', 'upstreams'] %}
+{%    set keywords = [
+        'location',
+        'locations',
+        'if',
+        'ifs',
+        'maps',
+        'upstreams',
+        'log_format',
+        'include'
+      ]
+%}
 {%    for dir in context.iterkeys() | difference(keywords) | sort %}
-{%      set result = _guess_syntax(dir, context[dir], allow_empty) %}
+{%      set result = guess_syntax(dir, context[dir], allow_empty) %}
 {%      if result %}
 {%        if not loop.first %}
 {{          '\n' }}
