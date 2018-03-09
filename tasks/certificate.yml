@@ -1,14 +1,21 @@
 ---
+- name: Set facts about crypto files paths
+  set_fact:
+    cacheable: true
+    nginx_ssl_key: "{{ ngx_key_dir[ansible_os_family] }}/{{ ngx_keypair_name }}.pem"
+    nginx_ssl_cert: "{{ ngx_cert_dir[ansible_os_family] }}/{{ ngx_keypair_name }}.crt"
+    nginx_ssl_dhparam: "{{ ngx_dhparam_path[ansible_os_family] }}"
+
 - name: Install private key
   copy:
-    dest: "{{ ngx_key_dir[ansible_os_family] }}/{{ ngx_keypair_name }}.pem"
+    dest: "{{ nginx_ssl_key }}"
     mode: 0660
     content: "{{ ngx_key }}"
   notify: Reload Nginx
 
 - name: Install certificate
   copy:
-    dest: "{{ ngx_cert_dir[ansible_os_family] }}/{{ ngx_keypair_name }}.crt"
+    dest: "{{ nginx_ssl_cert }}"
     mode: 0660
     content: |
       {{  ngx_cert }}
@@ -24,7 +31,7 @@
   notify: Reload Nginx
 
 - name: Generate random Diffie-Hellmann params
-  command: openssl dhparam -out {{ ngx_dhparam_path[ansible_os_family] }} {{ ngx_dhparam_bits }}
+  command: openssl dhparam -out {{ nginx_ssl_dhparam }} {{ ngx_dhparam_bits }}
   args:
-    creates: "{{ ngx_dhparam_path[ansible_os_family] }}"
+    creates: "{{ nginx_ssl_dhparam }}"
   notify: Reload Nginx
