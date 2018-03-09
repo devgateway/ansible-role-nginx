@@ -159,7 +159,7 @@ This mode uses a dictionary called `site`. The following members are special:
 
 * `server` is the only required context. This will be referred to hereinafter as the main server.
 
-* `redirect_from` is an optional list of `server_name`'s. Each will yield a `server` block with a redirect to the main server. See Redirect Servers below for details.
+* `redirect_from` is an optional list of `server_name`'s. If defined, it will yield a `server` block with a redirect to the main server (two server blocks - SSL and plaintext, if the main server uses SSL). See Redirect Servers below for details.
 
 * Other recognized contexts are `http`, `maps`, and `upstreams`. Each is described below.
 

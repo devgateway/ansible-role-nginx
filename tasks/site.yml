@@ -14,3 +14,4 @@
       {%    set base_name = first_name ~ '.conf' %}
       {%  endif %}
       {{  ngx_config_dir }}/{{ ngx_site_base_name | default(base_name) }}
+  notify: Reload Nginx
