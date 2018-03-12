@@ -197,8 +197,8 @@ Example:
       backend:
         ip_hash: true
         server:
-          - - http://localhost:9001
-            - http://otherhost:9001
+          - - localhost:9001
+            - otherhost:9001
 
 ### Redirect Servers
 
