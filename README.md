@@ -1,8 +1,11 @@
 # devgateway.nginx
 
-This is a low-level utility role to configure Nginx daemon *or* an individual site (`server` block and related directives).
+This is a low-level utility role to configure Nginx daemon *or* an individual site (`server` block
+and related directives).
 
-In a nutshell, this role translates YAML structures of certain grammar into Nginx grammar. Invoke this role (which knows *how* to generate Nginx syntax) from a higher level role (which knows *what* to generate). For example:
+In a nutshell, this role translates YAML structures of certain grammar into Nginx grammar. Invoke
+this role (which knows *how* to generate Nginx syntax) from a higher level role (which knows *what*
+to generate). For example:
 
     - name: Configure a PHP site
       include_role:
@@ -27,14 +30,20 @@ Thus, this role provides three independent modes:
 
 ## Role Grammar
 
-The role grammar is based on [Nginx configuration *contexts*](http://nginx.org/en/docs/beginners_guide.html#conf_structure). Site and daemon configuration mode take just one dictionary each, which contains:
+The role grammar is based on [Nginx configuration
+*contexts*](http://nginx.org/en/docs/beginners_guide.html#conf_structure). Site and daemon
+configuration mode take just one dictionary each, which contains:
 
 * Nginx directives applicable in current context and their values, as described below, and
 * other contexts, potentially nested, with their directives and values.
 
-**Be advised**, that although this role is idempotent, it operates on templates, and thus, on entire files, not individual directives. If you manually add a directive to the target file, it will be overwritten.
+**Be advised**, that although this role is idempotent, it operates on templates, and thus, on
+entire files, not individual directives. If you manually add a directive to the target file, it
+will be overwritten.
 
-Dictionary members are expanded into Nginx directives, so that the key becomes the directive name, and the value - its arguments. Directives, except blocks, are output in alphabetical order. Certain key names are special, those are described below. The following rules are used for the values.
+Dictionary members are expanded into Nginx directives, so that the key becomes the directive name,
+and the value - its arguments. Directives, except blocks, are output in alphabetical order. Certain
+key names are special, those are described below. The following rules are used for the values.
 
 ### Scalars
 
@@ -68,7 +77,8 @@ Dictionary members are expanded into Nginx directives, so that the key becomes t
 
         server_name bob.example.org alice.example.org;
 
-*   However, if the first value of a **list** is also a list, only that child list is evaluated. It yields multiple directives, with each value expanded as per these rules:
+*   However, if the first value of a **list** is also a list, only that child list is evaluated. It
+yields multiple directives, with each value expanded as per these rules:
 
         fastcgi_hide_header:
           - - X-Drupal-Version
@@ -82,7 +92,9 @@ Dictionary members are expanded into Nginx directives, so that the key becomes t
 
 ### Dictionaries
 
-*   If a **dictionary** contains special members `args` (list) or `kwargs` (dictionary), they become positional and keyworded arguments, respectively. Keyworded arguments get sorted; positional don't. Keyworded arguments that are lists, are joined using a colon:
+*   If a **dictionary** contains special members `args` (list) or `kwargs` (dictionary), they
+become positional and keyworded arguments, respectively. Keyworded arguments get sorted; positional
+don't. Keyworded arguments that are lists, are joined using a colon:
 
         proxy_cache_path:
           args:
@@ -101,7 +113,8 @@ Dictionary members are expanded into Nginx directives, so that the key becomes t
 
         proxy_cache_path /var/cache/nginx/php inactive=14d keys_zone=php:40m levels=1:2 max_size=512m;
 
-*   If a **dictionary** contains a key which is the same as `ansible_os_family` value, then its value is expanded further, according to these rules:
+*   If a **dictionary** contains a key which is the same as `ansible_os_family` value, then its
+value is expanded further, according to these rules:
 
         ssl_certificate_key:
           Debian: /etc/ssl/private/snakeoil.pem
@@ -111,7 +124,8 @@ Dictionary members are expanded into Nginx directives, so that the key becomes t
 
         ssl_certificate_key /etc/ssl/private/snakeoil.pem;
 
-*   Otherwise, a **dictionary** expands to multiple directives, keys becoming the first positional argument, and values expanded further as described above:
+*   Otherwise, a **dictionary** expands to multiple directives, keys becoming the first positional
+argument, and values expanded further as described above:
 
         access_log:
           /var/log/nginx/access.log: common
@@ -149,7 +163,8 @@ Example:
 
 ### Optional Variable: `ngx_config_path`
 
-Path to Nginx main configuration file. Its grammar will be verified with `nginx -tc`, so if you include `conf.d` configs, run this mode *after* you configure all sites.
+Path to Nginx main configuration file. Its grammar will be verified with `nginx -tc`, so if you
+include `conf.d` configs, run this mode *after* you configure all sites.
 
 Default: `/etc/nginx/nginx.conf`
 
@@ -159,17 +174,22 @@ This mode uses a dictionary called `site`. The following members are special:
 
 * `server` is the only required context. This will be referred to hereinafter as the main server.
 
-* `redirect_from` is an optional list of `server_name`'s. If defined, it will yield a `server` block with a redirect to the main server (two server blocks - SSL and plaintext, if the main server uses SSL). See Redirect Servers below for details.
+* `redirect_from` is an optional list of `server_name`'s. If defined, it will yield a `server`
+block with a redirect to the main server (two server blocks - SSL and plaintext, if the main server
+uses SSL). See Redirect Servers below for details.
 
 * Other recognized contexts are `http`, `maps`, and `upstreams`. Each is described below.
 
 ### `http` Context
 
-These directives appear in the beginning of the file, and belong to the `http` context of Nginx configuration, where the file is `include`'d.
+These directives appear in the beginning of the file, and belong to the `http` context of Nginx
+configuration, where the file is `include`'d.
 
 ### `maps` Context
 
-This context is a list of dictionaries, each representing a [`map` block](http://nginx.org/en/docs/http/ngx_http_map_module.html#map). The following members are recognized in a dictionary:
+This context is a list of dictionaries, each representing a [`map`
+block](http://nginx.org/en/docs/http/ngx_http_map_module.html#map). The following members are
+recognized in a dictionary:
 
 * `hostnames` and `volatile` - booleans;
 * `default` - scalar;
@@ -202,13 +222,18 @@ Example:
 
 ### Redirect Servers
 
-Depending on the main server SSL settings, one or two (SSL-enabled and plaintext) extra `server` blocks are generated. Each contains nothing but unconditional permanent redirect to the main server. The logic of main server domain name detection is described below.
+Depending on the main server SSL settings, one or two (SSL-enabled and plaintext) extra `server`
+blocks are generated. Each contains nothing but unconditional permanent redirect to the main
+server. The logic of main server domain name detection is described below.
 
-Additionally, if SSL is enabled for the main site, the third `server` block is generated, with the same `server_name` as the main server. This block contains a permanent redirect from plaintext site to SSL.
+Additionally, if SSL is enabled for the main site, the third `server` block is generated, with the
+same `server_name` as the main server. This block contains a permanent redirect from plaintext site
+to SSL.
 
 ### Main Server Block
 
-The main server block may contain an `ifs` member (a list of dictionaries), representing `if` blocks. Each of those blocks must contain at least an `if` member - the conditional expression.
+The main server block may contain an `ifs` member (a list of dictionaries), representing `if`
+blocks. Each of those blocks must contain at least an `if` member - the conditional expression.
 
 Example:
 
@@ -217,7 +242,9 @@ Example:
         - if: $http_referer ~ mallory\.example\.com
           return: 403
 
-The main server block may also contain a `locations` member (also a list of dictionaries). Each of those must contain at least a `location` member (which may also include matching operators like `~` or `=`), and may contain nested `locations` members, as well as `ifs`.
+The main server block may also contain a `locations` member (also a list of dictionaries). Each of
+those must contain at least a `location` member (which may also include matching operators like `~`
+or `=`), and may contain nested `locations` members, as well as `ifs`.
 
 Example:
 
@@ -230,17 +257,21 @@ Example:
 
 ## Certificate/DH Mode
 
-This mode uses at least two variables: `ngx_key` and `ngx_cert` which are the private key and the certificate, respectively.
+This mode uses at least two variables: `ngx_key` and `ngx_cert` which are the private key and the
+certificate, respectively.
 
 ### Optional Variables
 
-* `ngx_keypair_name` sets the base name (without extension) for the key and the certificate, and defaults to *nginx*.
+* `ngx_keypair_name` sets the base name (without extension) for the key and the certificate, and
+defaults to *nginx*.
 
-* `ngx_cert_chain` can be either a list of certificates in the chain (from intermediate to root CA), or a string with the said chain prebuilt.
+* `ngx_cert_chain` can be either a list of certificates in the chain (from intermediate to root
+CA), or a string with the said chain prebuilt.
 
 * `ngx_dhparam_bits` is the length of DH parameter to generated, default is 2048.
 
-* `ngx_key_dir`, `ngx_cert_dir`, and `ngx_dhparam_path` are dictionaries with `ansible_os_family` as keys, and define default directories and filename for the above.
+* `ngx_key_dir`, `ngx_cert_dir`, and `ngx_dhparam_path` are dictionaries with `ansible_os_family`
+as keys, and define default directories and filename for the above.
 
 Playbook example:
 
