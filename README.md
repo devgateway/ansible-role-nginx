@@ -145,7 +145,7 @@ Example:
       events:
         worker_connections: 1024
       http:
-        include: conf.d/*.conf
+        sendfile: true
 
 ### Optional Variable: `ngx_config_path`
 
