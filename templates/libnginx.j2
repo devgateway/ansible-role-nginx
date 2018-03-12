@@ -72,16 +72,7 @@
 {%- endmacro -%}
 
 {%  macro bulk_directives(context, allow_empty = false) %}
-{%    set keywords = [
-        'location',
-        'locations',
-        'if',
-        'ifs',
-        'maps',
-        'upstreams',
-        'log_format',
-        'include'
-      ]
+{%    set keywords = ['location', 'locations', 'if', 'ifs', 'maps', 'upstreams', 'log_format']
 %}
 {%    for dir in context.iterkeys() | difference(keywords) | sort %}
 {%      set result = guess_syntax(dir, context[dir], allow_empty) %}
