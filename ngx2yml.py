@@ -24,22 +24,22 @@ class Context:
         self.children = {}
 
     @staticmethod
-    def _add_item(_dict, item):
-        if item.name not in _dict:
-            _dict[item.name] = []
-        _dict[item.name].append(item)
+    def _add_item(_dict, item, name):
+        if name not in _dict:
+            _dict[name] = []
+        _dict[name].append(item)
 
     def add_directive(self, name, tokens):
         log.debug('\tDirective %s' % name)
         directive = Directive(tokens)
-        self._add_item(self.directives, directive)
+        self._add_item(self.directives, directive, name)
 
     def add_context(self, child):
         child.parent = self
-        self._add_item(self.children, child)
+        self._add_item(self.children, child, child.name)
 
-# match single or double quoted strings and barewords; strip quotes
-tokenizer = re.compile(r'(?:(?<=\')[^\']*(?=\'))|(?:(?<=")[^"]*(?="))|(?:\([^)]+\))|(?:[^\'"\s]+)')
+# match single or double quoted strings and barewords
+tokenizer = re.compile(r'(?:\'[^\']*\')|(?:"[^"]*")|(?:\([^)]+\))|(?:[^\'"\s]+)')
 
 http = Context('http')
 
