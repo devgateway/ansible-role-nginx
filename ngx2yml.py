@@ -5,8 +5,15 @@ logging.basicConfig(level = 'DEBUG')
 log = logging.getLogger(sys.argv[0])
 
 class Directive:
-    def __init__(self, name, tokens = None):
-        self.name = name
+    def __init__(self, tokens):
+        self.args = []
+        self.kwargs = {}
+        for token in tokens:
+            pass
+
+        # bare statement, e.g. "ip_hash"
+        if not tokens:
+            self.args.append(True)
 
 class Context:
     def __init__(self, name, args = None):
@@ -24,7 +31,7 @@ class Context:
 
     def add_directive(self, name, tokens):
         log.debug('\tDirective %s' % name)
-        directive = Directive(name, tokens)
+        directive = Directive(tokens)
         self._add_item(self.directives, directive)
 
     def add_context(self, child):
