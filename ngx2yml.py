@@ -42,3 +42,5 @@ with open(sys.argv[1], 'r') as config:
                     # add child context
                     child = Context(name = tokens[0], args = tokens[1:])
                     curr_ctx.add_context(child)
+                else:
+                    raise RuntimeError('Line wrapping not supported. Fix it.')
