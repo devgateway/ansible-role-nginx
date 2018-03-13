@@ -5,26 +5,31 @@ logging.basicConfig(level = 'DEBUG')
 log = logging.getLogger(sys.argv[0])
 
 class Directive:
-    def __init__(self, tokens = None):
-        pass
+    def __init__(self, name, tokens = None):
+        self.name = name
 
 class Context:
     def __init__(self, name, args = None):
         self.args = args
         self.name = name
         self.parent = None
-        self.directive_lists = {}
-        self.child_lists = {}
+        self.directives = {}
+        self.children = {}
+
+    @staticmethod
+    def _add_item(_dict, item):
+        if item.name not in _dict:
+            _dict[item.name] = []
+        _dict[item.name].append(item)
 
     def add_directive(self, name, tokens):
         log.debug('\tDirective %s' % name)
-        pass
+        directive = Directive(name, tokens)
+        self._add_item(self.directives, directive)
 
     def add_context(self, child):
         child.parent = self
-        if child.name not in self.child_lists:
-            self.child_lists[child.name] = []
-        self.child_lists[child.name].append(child)
+        self._add_item(self.children, child)
 
 # match single or double quoted strings and barewords; strip quotes
 tokenizer = re.compile(r'(?:(?<=\')[^\']*(?=\'))|(?:(?<=")[^"]*(?="))|(?:\([^)]+\))|(?:[^\'"\s]+)')
