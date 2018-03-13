@@ -6,7 +6,6 @@ log = logging.getLogger(sys.argv[0])
 
 class Context:
     def __init__(self, name, args = None):
-        log.debug('Create context "%s"' % name)
         self.args = args
         self.name = name
         self.parent = None
@@ -14,11 +13,10 @@ class Context:
         self.child_lists = {}
 
     def add_directive(self, name, args):
-        log.debug('Add directive "%s"' % name)
+        log.debug('\tDirective %s' % name)
         pass
 
     def add_context(self, child):
-        log.debug('Add context "%s->%s"' % (self.name, child.name))
         child.parent = self
         if child.name not in self.child_lists:
             self.child_lists[child.name] = []
@@ -30,19 +28,17 @@ tokenizer = re.compile(r'(?:(?<=\')[^\']*(?=\'))|(?:(?<=")[^"]*(?="))|(?:\([^)]+
 http = Context('http')
 
 with open(sys.argv[1], 'r') as config:
-    lineno = 0
+    log.debug('Enter context http')
     curr_ctx = http
     for dirty_line in config:
-        lineno = lineno + 1
         line = dirty_line.lstrip().rstrip()
         if not line or line[0] == '#':
             # skip blanks and comments
-            log.debug('Line %i: skipping' % lineno)
             continue
         else:
             if line[-1] == '}':
                 # exit child context
-                log.debug('Line %i: exit context %s' % (lineno, curr_ctx.name))
+                log.debug('Exit context %s' % curr_ctx.name)
                 curr_ctx = curr_ctx.parent
             else:
                 tokens = tokenizer.findall(line[:-1])
@@ -53,6 +49,7 @@ with open(sys.argv[1], 'r') as config:
                     # add child context
                     child = Context(name = tokens[0], args = tokens[1:])
                     curr_ctx.add_context(child)
+                    log.debug('Enter context %s' % child.name)
                     curr_ctx = child
                 else:
                     raise RuntimeError('Line wrapping not supported. Fix it.')
