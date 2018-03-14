@@ -9,7 +9,18 @@ class Directive:
         self.args = []
         self.kwargs = {}
         for token in tokens:
-            pass
+            if token[0] in '\'"':
+                # it's a quoted string
+                self.args.append(token[1:-2])
+            elif '=' in token:
+                # it's a keyworded argument
+                (key, value) = tuple('='.split(token, maxsplit = 1))
+                if ':' in value:
+                    # it's a list of values
+                    self.kwargs[key] = ':'.split(value)
+                else:
+                    # it's a single value
+                    self.kwargs[key] = value
 
         # bare statement, e.g. "ip_hash"
         if not tokens:
