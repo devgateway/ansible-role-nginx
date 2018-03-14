@@ -4,8 +4,16 @@ import sys, re, logging
 logging.basicConfig(level = 'DEBUG')
 log = logging.getLogger(sys.argv[0])
 
-class Directive:
-    def __init__(self, tokens):
+class Statement:
+    def __init__(self, name):
+        self.name = name
+
+    def __str__(self):
+        return self.name
+
+class Directive(Statement):
+    def __init__(self, name, tokens):
+        super().__init__(name)
         self.args = []
         self.kwargs = {}
         for token in tokens:
@@ -26,10 +34,12 @@ class Directive:
         if not tokens:
             self.args.append(True)
 
-class Context:
+        return result
+
+class Context(Statement):
     def __init__(self, name, args = None):
+        super().__init__(name)
         self.args = args
-        self.name = name
         self.parent = None
         self.directives = {}
         self.children = {}
@@ -42,7 +52,7 @@ class Context:
 
     def add_directive(self, name, tokens):
         log.debug('\tDirective %s' % name)
-        directive = Directive(tokens)
+        directive = Directive(name, tokens)
         self._add_item(self.directives, directive, name)
 
     def add_context(self, child):
