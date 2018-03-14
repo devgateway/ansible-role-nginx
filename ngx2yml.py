@@ -16,23 +16,38 @@ class Directive(Statement):
         super().__init__(name)
         self.args = []
         self.kwargs = {}
+
+        # bare statement, e.g. "ip_hash"
+        if not tokens:
+            self.args.append(True)
+
         for token in tokens:
             if token[0] in '\'"':
                 # it's a quoted string
                 self.args.append(token[1:-2])
             elif '=' in token:
                 # it's a keyworded argument
-                (key, value) = tuple('='.split(token, maxsplit = 1))
+                (key, value) = tuple(token.split('=', maxsplit = 1))
                 if ':' in value:
                     # it's a list of values
-                    self.kwargs[key] = ':'.split(value)
+                    self.kwargs[key] = value.split(':')
                 else:
                     # it's a single value
-                    self.kwargs[key] = value
+                    self.kwargs[key] = self._parse_scalar(value)
+            else:
+                # it's a positional argument
+                self.args.append(self._parse_scalar(token))
 
-        # bare statement, e.g. "ip_hash"
-        if not tokens:
-            self.args.append(True)
+        log.debug('\t%s: %i args, %i kwargs' % (self.name, len(self.args), len(self.kwargs)))
+
+    @staticmethod
+    def _parse_scalar(scalar):
+        if scalar == 'on':
+            result = True
+        elif scalar == 'off':
+            result = False
+        else:
+            result = scalar
 
         return result
 
@@ -51,7 +66,6 @@ class Context(Statement):
         _dict[name].append(item)
 
     def add_directive(self, name, tokens):
-        log.debug('\tDirective %s' % name)
         directive = Directive(name, tokens)
         self._add_item(self.directives, directive, name)
 
