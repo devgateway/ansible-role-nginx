@@ -73,6 +73,36 @@ class Context(Statement):
         child.parent = self
         self._add_item(self.children, child, child.name)
 
+    def get_data(self):
+        data = {}
+        for name, directives in self.directives.items():
+            if len(directives) == 1:
+                # single directive in this context
+                this_directive = directives[0]
+                if this_directive.kwargs:
+                    # keyworded args present, make it a dictionary
+                    data[name] = {'kwargs': this_directive.kwargs}
+                    # if positional args also present, add them as 'args' member
+                    if this_directive.args:
+                        data[name]['args'] = this_directive.kwargs
+                else:
+                    data[name] = this_directive.args
+            else:
+                # multiple directives in this context
+                multiple_args = map(lambda d: len(d.args) > 1, directives)
+                if all(multiple_args):
+                    # make a dict with each first arg as the key
+                    data[name] = {}
+                    for directive in directives:
+                        args = directive.args[:]
+                        key = args.pop(0)
+                        data[name][key] = args
+                else:
+                    # array of arrays of arguments
+                    data[name] = [d.args for d in directives]
+
+        return data
+
 # match single or double quoted strings and barewords
 tokenizer = re.compile(r'(?:\'[^\']*\')|(?:"[^"]*")|(?:\([^)]+\))|(?:[^\'"\s]+)')
 
