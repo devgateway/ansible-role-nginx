@@ -101,6 +101,14 @@ class Context(Statement):
                     # array of arrays of arguments
                     data[name] = [d.args for d in directives]
 
+        for directive_name, contexts in self.children.items():
+            context_data = []
+            for context in contexts:
+                child_data = context.get_data()
+                child_data[directive_name] = context.args
+                context_data.append(child_data)
+            data[directive_name + 's'] = context_data
+
         return data
 
 # match single or double quoted strings and barewords
