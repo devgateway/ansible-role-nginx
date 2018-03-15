@@ -31,7 +31,7 @@ class Directive(Statement):
                 (key, value) = tuple(token.split('=', maxsplit = 1))
                 if ':' in value:
                     # it's a list of values
-                    self.kwargs[key] = value.split(':')
+                    self.kwargs[key] = [self._parse_scalar(v) for v in value.split(':')]
                 else:
                     # it's a single value
                     self.kwargs[key] = self._parse_scalar(value)
@@ -114,7 +114,8 @@ class Context(Statement):
             context_data = []
             for context in contexts:
                 child_data = context.get_data()
-                child_data[directive_name] = ' '.join(context.args)
+                if directive_name != 'server':
+                    child_data[directive_name] = ' '.join(context.args)
                 context_data.append(child_data)
             data[directive_name + 's'] = context_data
 
