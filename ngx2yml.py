@@ -1,5 +1,9 @@
 #!/usr/bin/python3
-import sys, re, logging
+import sys, re, logging, yaml
+try:
+    from yaml import CDumper as Dumper
+except ImportError:
+    from yaml import Dumper
 
 logging.basicConfig(level = 'DEBUG')
 log = logging.getLogger(sys.argv[0])
@@ -142,3 +146,5 @@ with open(sys.argv[1], 'r') as config:
                     curr_ctx = child
                 else:
                     raise RuntimeError('Line wrapping not supported. Fix it.\n' + line)
+
+print(yaml.dump(http.get_data(), Dumper = Dumper))
