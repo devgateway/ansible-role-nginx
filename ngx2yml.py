@@ -1,12 +1,9 @@
 #!/usr/bin/python3
-import sys, re, logging, yaml
+import sys, re, logging, yaml, os
 try:
     from yaml import CDumper as Dumper
 except ImportError:
     from yaml import Dumper
-
-logging.basicConfig(level = 'DEBUG')
-log = logging.getLogger(sys.argv[0])
 
 class Statement:
     def __init__(self, name):
@@ -114,6 +111,22 @@ class Context(Statement):
             data[directive_name + 's'] = context_data
 
         return data
+
+# configure logging
+valid_levels = ["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"]
+try:
+    env_level = os.environ["LOG_LEVEL"]
+    valid_levels.remove(env_level)
+    level = getattr(logging, env_level)
+except KeyError:
+    level = logging.WARNING
+except ValueError:
+    msg = "Expected log level: %s, got: %s. Using default level WARNING." \
+            % ("|".join(valid_levels), env_level)
+    print(msg, file = sys.stderr)
+    level = logging.WARNING
+logging.basicConfig(level = level)
+log = logging.getLogger(sys.argv[0])
 
 # match single or double quoted strings and barewords
 tokenizer = re.compile(r'(?:\'[^\']*\')|(?:"[^"]*")|(?:\([^)]+\))|(?:[^\'"\s]+)')
