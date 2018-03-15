@@ -114,7 +114,7 @@ class Context(Statement):
             context_data = []
             for context in contexts:
                 child_data = context.get_data()
-                child_data[directive_name] = context.args
+                child_data[directive_name] = ' '.join(context.args)
                 context_data.append(child_data)
             data[directive_name + 's'] = context_data
 
@@ -168,4 +168,8 @@ with open(sys.argv[1], 'r') as config:
                 else:
                     raise RuntimeError('Line wrapping not supported. Fix it.\n' + line)
 
-print(yaml.dump(http.get_data(), Dumper = Dumper))
+print(yaml.dump(
+    http.get_data(),
+    Dumper = Dumper,
+    default_flow_style = False
+    ))
