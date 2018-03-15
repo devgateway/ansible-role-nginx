@@ -178,6 +178,10 @@ This mode uses a dictionary called `site`. The following members are special:
 block with a redirect to the main server (two server blocks - SSL and plaintext, if the main server
 uses SSL). See Redirect Servers below for details.
 
+* `name` is an optional base name (without extension) of the config file to generate. Use this
+variable, for instance, if your `server_name` is a regex. Otherwise, the first `server_name` will
+be used, with the leading dot removed.
+
 * Other recognized contexts are `http`, `maps`, and `upstreams`. Each is described below.
 
 ### `http` Context
