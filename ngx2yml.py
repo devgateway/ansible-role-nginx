@@ -75,6 +75,12 @@ class Context(Statement):
         self._add_item(self.children, child, child.name)
 
     def get_data(self):
+        def get_args(directive):
+            if len(directive.args) == 1:
+                return directive.args[0]
+            else:
+                return directive.args
+
         data = {}
         for name, directives in self.directives.items():
             if len(directives) == 1:
@@ -87,7 +93,7 @@ class Context(Statement):
                     if this_directive.args:
                         data[name]['args'] = this_directive.kwargs
                 else:
-                    data[name] = this_directive.args
+                    data[name] = get_args(this_directive)
             else:
                 # multiple directives in this context
                 multiple_args = map(lambda d: len(d.args) > 1, directives)
@@ -100,7 +106,7 @@ class Context(Statement):
                         data[name][key] = args
                 else:
                     # array of arrays of arguments
-                    data[name] = [d.args for d in directives]
+                    data[name] = [get_args(d) for d in directives]
 
         for directive_name, contexts in self.children.items():
             context_data = []
