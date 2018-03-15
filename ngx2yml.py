@@ -47,6 +47,8 @@ class Directive(Statement):
             result = True
         elif scalar == 'off':
             result = False
+        elif scalar.isdigit():
+            result = int(scalar)
         else:
             result = scalar
 
