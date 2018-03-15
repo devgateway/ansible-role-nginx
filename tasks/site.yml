@@ -9,9 +9,9 @@
       {%    set first_name = site.server.server_name[0] %}
       {%  endif %}
       {%- if first_name[0] == '.' %}
-      {%    set base_name = (first_name | replace('.', '', 1)) ~ '.conf' %}
+      {%    set base_name = (first_name | replace('.', '', 1)) %}
       {%  else %}
-      {%    set base_name = first_name ~ '.conf' %}
+      {%    set base_name = first_name %}
       {%  endif %}
-      {{  ngx_config_dir }}/{{ site.name | default(base_name) }}
+      {{  ngx_config_dir }}/{{ site.name | default(base_name) }}.conf
   notify: Reload Nginx
