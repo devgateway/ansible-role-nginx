@@ -25,7 +25,7 @@ class Directive(Statement):
         for token in tokens:
             if token[0] in '\'"':
                 # it's a quoted string
-                self.args.append(token[1:-2])
+                self.args.append(token[1:-1])
             elif '=' in token:
                 # it's a keyworded argument
                 (key, value) = tuple(token.split('=', maxsplit = 1))
