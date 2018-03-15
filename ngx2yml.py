@@ -93,7 +93,7 @@ class Context(Statement):
                     data[name] = {'kwargs': this_directive.kwargs}
                     # if positional args also present, add them as 'args' member
                     if this_directive.args:
-                        data[name]['args'] = this_directive.kwargs
+                        data[name]['args'] = this_directive.args
                 else:
                     data[name] = get_args(this_directive)
             else:
