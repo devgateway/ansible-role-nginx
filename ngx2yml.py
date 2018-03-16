@@ -123,7 +123,7 @@ class Context(Statement):
                         data[name][key] = args
                 else:
                     # array of arrays of arguments
-                    data[name] = [get_args(d) for d in directives]
+                    data[name] = [[get_args(d) for d in directives]]
 
         for directive_name, contexts in self.children.items():
             context_data = []
