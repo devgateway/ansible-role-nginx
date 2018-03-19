@@ -192,7 +192,11 @@ http_data = http.get_data()
 servers = http_data['servers']
 del http_data['servers']
 for server in servers:
-    log.info(server['server_name'])
+    try:
+        server_name = server['server_name']
+    except KeyError:
+        server_name = '<no server name>'
+    log.info(server_name)
     site = {'site': {'server': server}}
     if http_data:
         site['site']['http'] = http_data
