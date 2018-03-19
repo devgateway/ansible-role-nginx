@@ -188,8 +188,16 @@ with open(sys.argv[1], 'r') as config:
                 else:
                     raise RuntimeError('Line wrapping not supported. Fix it.\n' + line)
 
-print(yaml.dump(
-    http.get_data(),
-    Dumper = Dumper,
-    default_flow_style = False
-    ))
+http_data = http.get_data()
+servers = http_data['servers']
+del http_data['servers']
+for server in servers:
+    site = {'site': {'server': server}}
+    if http_data:
+        site['site']['http'] = http_data
+        print(yaml.dump(
+            site,
+            Dumper = Dumper,
+            default_flow_style = False,
+            explicit_start = True
+            ))
