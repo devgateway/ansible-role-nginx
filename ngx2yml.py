@@ -192,12 +192,13 @@ http_data = http.get_data()
 servers = http_data['servers']
 del http_data['servers']
 for server in servers:
+    log.info(server['server_name'])
     site = {'site': {'server': server}}
     if http_data:
         site['site']['http'] = http_data
-        print(yaml.dump(
-            site,
-            Dumper = Dumper,
-            default_flow_style = False,
-            explicit_start = True
-            ))
+    print(yaml.dump(
+        site,
+        Dumper = Dumper,
+        default_flow_style = False,
+        explicit_start = True
+        ))
