@@ -63,7 +63,7 @@ def get_file_name(document):
             else:
                 ports = [listen]
 
-            for port in listen:
+            for port in ports:
                 # try appending ports (or other listen args)
                 new_name = '%s-%s' % (primary_name, port)
                 if new_name not in unique_names:
