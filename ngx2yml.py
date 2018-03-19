@@ -129,7 +129,11 @@ class Context(Statement):
             context_data = []
             for context in contexts:
                 child_data = context.get_data()
-                if directive_name != 'server':
+                if directive_name == 'if':
+                    # remove parentheses from condition
+                    child_data[directive_name] = ' '.join(context.args)[1:-1]
+                elif directive_name != 'server':
+                    # add context name, e.g.: "location: /"
                     child_data[directive_name] = ' '.join(context.args)
                 context_data.append(child_data)
             data[directive_name + 's'] = context_data
@@ -152,7 +156,7 @@ except ValueError:
 logging.basicConfig(level = level)
 log = logging.getLogger(sys.argv[0])
 
-# match single or double quoted strings and barewords
+# match single or double quoted strings, parenthesized expressions, and barewords
 tokenizer = re.compile(r'(?:\'[^\']*\')|(?:"[^"]*")|(?:\([^)]+\))|(?:[^\'"\s]+)')
 
 http = Context('http')
