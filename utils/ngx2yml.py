@@ -158,52 +158,65 @@ def get_logger():
     logging.basicConfig(level = level)
     return logging.getLogger(sys.argv[0])
 
-log = get_logger()
+class ConfFile():
+    # match single or double quoted strings, parenthesized expressions, and barewords
+    tokenizer = re.compile(r'(?:\'[^\']*\')|(?:"[^"]*")|(?:\([^)]+\))|(?:[^\'"\s]+)')
 
-# match single or double quoted strings, parenthesized expressions, and barewords
-tokenizer = re.compile(r'(?:\'[^\']*\')|(?:"[^"]*")|(?:\([^)]+\))|(?:[^\'"\s]+)')
+    @classmethod
+    def read_config(cls, file_name):
+        log.info('Parsing %s' % file_name)
+        http = Context('http')
 
-http = Context('http')
-
-with open(sys.argv[1], 'r') as config:
-    log.debug('Enter context http')
-    curr_ctx = http
-    for dirty_line in config:
-        line = dirty_line.lstrip().rstrip()
-        if not line or line[0] == '#':
-            # skip blanks and comments
-            continue
-        else:
-            if line[-1] == '}':
-                # exit child context
-                log.debug('Exit context %s' % curr_ctx.name)
-                curr_ctx = curr_ctx.parent
-            else:
-                tokens = tokenizer.findall(line[:-1])
-                if line[-1] == ';':
-                    # add directive at current context
-                    curr_ctx.add_directive(name = tokens[0], tokens = tokens[1:])
-                elif line[-1] == '{':
-                    # add child context
-                    child = Context(name = tokens[0], args = tokens[1:])
-                    curr_ctx.add_context(child)
-                    log.debug('Enter context %s' % child.name)
-                    curr_ctx = child
+        with open(file_name, 'r') as config:
+            log.debug('Enter context http')
+            curr_ctx = http
+            for dirty_line in config:
+                line = dirty_line.lstrip().rstrip()
+                if not line or line[0] == '#':
+                    # skip blanks and comments
+                    continue
                 else:
-                    raise RuntimeError('Line wrapping not supported. Fix it.\n' + line)
+                    if line[-1] == '}':
+                        # exit child context
+                        log.debug('Exit context %s' % curr_ctx.name)
+                        curr_ctx = curr_ctx.parent
+                    else:
+                        tokens = cls.tokenizer.findall(line[:-1])
+                        if line[-1] == ';':
+                            # add directive at current context
+                            curr_ctx.add_directive(name = tokens[0], tokens = tokens[1:])
+                        elif line[-1] == '{':
+                            # add child context
+                            child = Context(name = tokens[0], args = tokens[1:])
+                            curr_ctx.add_context(child)
+                            log.debug('Enter context %s' % child.name)
+                            curr_ctx = child
+                        else:
+                            raise RuntimeError('Line wrapping not supported. Fix it.\n' + line)
 
-http_data = http.get_data()
-servers = http_data['servers']
-del http_data['servers']
-for server in servers:
-    try:
-        server_name = server['server_name']
-    except KeyError:
-        server_name = '<no server name>'
-    log.info(server_name)
-    site = {'site': {'server': server}}
-    if http_data:
-        site['site']['http'] = http_data
+        return http.get_data()
+
+    def __init__(self, file_name):
+        self.http_data = self.read_config(file_name)
+        self.servers = self.http_data['servers']
+        del self.http_data['servers']
+
+    def __iter__(self):
+        for server in self.servers:
+            try:
+                server_name = server['server_name']
+            except KeyError:
+                server_name = '<no server name>'
+            log.info(server_name)
+            site = {'site': {'server': server}}
+            if self.http_data:
+                site['site']['http'] = self.http_data
+
+            yield site
+
+log = get_logger()
+conf = ConfFile(sys.argv[1])
+for site in conf:
     print(yaml.dump(
         site,
         Dumper = Dumper,
