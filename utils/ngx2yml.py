@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License along with this program.
 # If not, see <https://www.gnu.org/licenses/>.
 
-import sys, re, logging, yaml, os, uuid
+import sys, re, logging, yaml, os, uuid, glob
 try:
     from yaml import CDumper as Dumper
 except ImportError:
@@ -156,9 +156,9 @@ def get_logger():
         print(msg, file = sys.stderr)
         level = logging.WARNING
     logging.basicConfig(level = level)
-    return logging.getLogger(sys.argv[0])
+    return logging.getLogger('ngx2yaml')
 
-class ConfFile():
+class NginxConfig():
     # match single or double quoted strings, parenthesized expressions, and barewords
     tokenizer = re.compile(r'(?:\'[^\']*\')|(?:"[^"]*")|(?:\([^)]+\))|(?:[^\'"\s]+)')
 
@@ -207,7 +207,7 @@ class ConfFile():
                 server_name = server['server_name']
             except KeyError:
                 server_name = '<no server name>'
-            log.info('Found server %s' % server_name)
+            log.debug('Found server %s' % server_name)
             site = {'site': {'server': server}}
             if self.http_data:
                 site['site']['http'] = self.http_data
@@ -274,7 +274,10 @@ class YamlWriter:
                     )
 
 log = get_logger()
-conf = ConfFile(sys.argv[1])
+conf_files = glob.glob(os.path.join(sys.argv[1], '*.conf'))
 writer = YamlWriter(sys.argv[2])
-for site in conf:
-    writer.write(site)
+
+for file_name in conf_files:
+    config = NginxConfig(file_name)
+    for site in config:
+        writer.write(site)
