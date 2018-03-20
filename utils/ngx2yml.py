@@ -274,14 +274,19 @@ class YamlWriter:
                     )
 
 def main():
-    log = get_logger()
-    conf_files = glob.glob(os.path.join(sys.argv[1], '*.conf'))
-    writer = YamlWriter(sys.argv[2])
+    ap = argparse.ArgumentParser(description = 'Convert Nginx conf.d files to YAML structures')
+    ap.add_argument('conf_dir', help = 'Nginx conf.d directory')
+    ap.add_argument('output_dir', help = 'Write YAML files to this directory')
+    args = ap.parse_args()
+
+    conf_files = glob.glob(os.path.join(args.conf_dir, '*.conf'))
+    writer = YamlWriter(args.output_dir)
 
     for file_name in conf_files:
         config = NginxConfig(file_name)
         for site in config:
             writer.write(site)
 
+log = get_logger()
 if __name__ == "__main__":
     main()
