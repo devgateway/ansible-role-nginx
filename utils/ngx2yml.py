@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License along with this program.
 # If not, see <https://www.gnu.org/licenses/>.
 
-import sys, re, logging, yaml, os, uuid, glob
+import sys, re, logging, yaml, os, uuid, glob, argparse
 try:
     from yaml import CDumper as Dumper
 except ImportError:
@@ -273,11 +273,15 @@ class YamlWriter:
                     explicit_start = True
                     )
 
-log = get_logger()
-conf_files = glob.glob(os.path.join(sys.argv[1], '*.conf'))
-writer = YamlWriter(sys.argv[2])
+def main():
+    log = get_logger()
+    conf_files = glob.glob(os.path.join(sys.argv[1], '*.conf'))
+    writer = YamlWriter(sys.argv[2])
 
-for file_name in conf_files:
-    config = NginxConfig(file_name)
-    for site in config:
-        writer.write(site)
+    for file_name in conf_files:
+        config = NginxConfig(file_name)
+        for site in config:
+            writer.write(site)
+
+if __name__ == "__main__":
+    main()
