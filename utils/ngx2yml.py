@@ -140,21 +140,25 @@ class Context(Statement):
 
         return data
 
-# configure logging
-valid_levels = ["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"]
-try:
-    env_level = os.environ["LOG_LEVEL"]
-    valid_levels.remove(env_level)
-    level = getattr(logging, env_level)
-except KeyError:
-    level = logging.WARNING
-except ValueError:
-    msg = "Expected log level: %s, got: %s. Using default level WARNING." \
-            % ("|".join(valid_levels), env_level)
-    print(msg, file = sys.stderr)
-    level = logging.WARNING
-logging.basicConfig(level = level)
-log = logging.getLogger(sys.argv[0])
+def get_logger():
+    """Configure logging."""
+
+    valid_levels = ["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"]
+    try:
+        env_level = os.environ["LOG_LEVEL"]
+        valid_levels.remove(env_level)
+        level = getattr(logging, env_level)
+    except KeyError:
+        level = logging.WARNING
+    except ValueError:
+        msg = "Expected log level: %s, got: %s. Using default level WARNING." \
+                % ("|".join(valid_levels), env_level)
+        print(msg, file = sys.stderr)
+        level = logging.WARNING
+    logging.basicConfig(level = level)
+    return logging.getLogger(sys.argv[0])
+
+log = get_logger()
 
 # match single or double quoted strings, parenthesized expressions, and barewords
 tokenizer = re.compile(r'(?:\'[^\']*\')|(?:"[^"]*")|(?:\([^)]+\))|(?:[^\'"\s]+)')
