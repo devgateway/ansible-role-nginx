@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License along with this program.
 # If not, see <https://www.gnu.org/licenses/>.
 
-import sys, re, logging, yaml, os
+import sys, re, logging, yaml, os, uuid
 try:
     from yaml import CDumper as Dumper
 except ImportError:
@@ -207,19 +207,74 @@ class ConfFile():
                 server_name = server['server_name']
             except KeyError:
                 server_name = '<no server name>'
-            log.info(server_name)
+            log.info('Found server %s' % server_name)
             site = {'site': {'server': server}}
             if self.http_data:
                 site['site']['http'] = self.http_data
 
             yield site
 
+class YamlWriter:
+    def __init__(self, path):
+        self.path = path
+        self.unique_names = set()
+
+    def get_file_name(self, site):
+        try:
+            server_names = site['site']['server']['server_name']
+            if type(server_names) is str:
+                primary_name = server_names
+            else:
+                primary_name = server_names[0]
+            log.debug('Primary name is %s' % primary_name)
+
+            if primary_name[0] == '.':
+                # strip leading dot
+                primary_name = primary_name[1:]
+                log.debug('Removed leading dot')
+
+            if primary_name in self.unique_names:
+                log.info('Name %s not unique' % primary_name)
+                listen = site['site']['server']['listen']
+                if type(listen) is list:
+                    # multiple arguments to listen directive
+                    ports = listen
+                else:
+                    ports = [listen]
+
+                for port in ports:
+                    # try appending ports (or other listen args)
+                    new_name = '%s-%s' % (primary_name, port)
+                    if new_name not in self.unique_names:
+                        # found a unique name
+                        log.info('New unique name %s' % new_name)
+                        primary_name = new_name
+                        break
+
+                if primary_name in self.unique_names:
+                    # still not unique, resort to UUID
+                    raise KeyError('Can\'t create a unique file name')
+            self.unique_names.add(primary_name)
+            base_name = primary_name
+        except Exception as e:
+            log.warning(str(e))
+            base_name = str(uuid.uuid4())
+        return os.path.join(sys.argv[2], base_name + '.yml')
+
+    def write(self, site):
+        file_name = self.get_file_name(site)
+        log.info('Writing %s' % file_name)
+        with open(file_name, 'x') as yaml_file:
+            yaml.dump(
+                    site,
+                    stream = yaml_file,
+                    Dumper = Dumper,
+                    default_flow_style = False,
+                    explicit_start = True
+                    )
+
 log = get_logger()
 conf = ConfFile(sys.argv[1])
+writer = YamlWriter(sys.argv[2])
 for site in conf:
-    print(yaml.dump(
-        site,
-        Dumper = Dumper,
-        default_flow_style = False,
-        explicit_start = True
-        ))
+    writer.write(site)
