@@ -15,3 +15,21 @@
       {%  endif %}
       {{  ngx_config_dir }}/{{ site.name | default(base_name) }}.conf
   notify: Reload Nginx
+  when: state | default('present') == 'present'
+
+- name: Delete site
+  file:
+    path: |-
+      {%  if site.server.server_name is string %}
+      {%    set first_name = site.server.server_name %}
+      {%  else %}
+      {%    set first_name = site.server.server_name[0] %}
+      {%  endif %}
+      {%- if first_name[0] == '.' %}
+      {%    set base_name = (first_name | replace('.', '', 1)) %}
+      {%  else %}
+      {%    set base_name = first_name %}
+      {%  endif %}
+      {{  ngx_config_dir }}/{{ site.name | default(base_name) }}.conf
+    state: absent
+  when: state | default('present') == 'absent'

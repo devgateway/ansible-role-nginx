@@ -170,6 +170,9 @@ Default: `/etc/nginx/nginx.conf`
 
 ## Site Configuration Mode (`conf.d/`*`site`*`.conf`)
 
+An optional variable `state` (default: `present`) defines whether the site will be created or
+deleted. To delete, set it to `absent`.
+
 This mode uses a dictionary called `site`. The following members are special:
 
 * `server` is the only required context. This will be referred to hereinafter as the main server.
