@@ -1,0 +1,8 @@
+---
+galaxy_info:
+  role_name: devgateway.nginx
+  description: Low-level utility role to configure Nginx
+  author: Development Gateway
+  company: Development Gateway
+  license: GPLv3+
+  dependencies: []
