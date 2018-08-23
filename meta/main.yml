@@ -1,7 +1,7 @@
 ---
 galaxy_info:
   role_name: devgateway.nginx
-  description: Low-level utility role to configure Nginx
+  description: Configure Nginx daemon or site
   author: Development Gateway
   company: Development Gateway
   license: GPLv3+
