@@ -11,6 +11,8 @@
 {%      else %}
 {%        if arg is string and ' ' in arg %}
 {%          set arg = arg | quote %}
+{%        elif arg == '' %}
+{%          set arg = "''" %}
 {%        endif %}
 {%      endif %}
 {{      ' ' }}{{ arg }}
