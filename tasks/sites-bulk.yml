@@ -1,0 +1,66 @@
+---
+- name: Bulk configure sites
+  template:
+    src: site.conf.j2
+    dest: |-
+      {%  if site.server.server_name is string %}
+      {%    set first_name = site.server.server_name %}
+      {%  else %}
+      {%    set first_name = site.server.server_name[0] %}
+      {%  endif %}
+      {%- if first_name[0] == '.' %}
+      {%    set base_name = (first_name | replace('.', '', 1)) %}
+      {%  else %}
+      {%    set base_name = first_name %}
+      {%  endif %}
+      {{  ngx_config_dir }}/{{ site.name | default(base_name) }}.conf
+  loop: "{{ sites }}"
+  loop_control:
+    loop_var: site
+    label: |-
+      {%  if site.server.server_name is string %}
+      {%    set first_name = site.server.server_name %}
+      {%  else %}
+      {%    set first_name = site.server.server_name[0] %}
+      {%  endif %}
+      {%- if first_name[0] == '.' %}
+      {%    set base_name = (first_name | replace('.', '', 1)) %}
+      {%  else %}
+      {%    set base_name = first_name %}
+      {%  endif %}
+      {{  site.name | default(base_name) }}
+  notify: Reload Nginx
+  when: state | default('present') == 'present'
+
+- name: Bulk delete sites
+  file:
+    path: |-
+      {%  if site.server.server_name is string %}
+      {%    set first_name = site.server.server_name %}
+      {%  else %}
+      {%    set first_name = site.server.server_name[0] %}
+      {%  endif %}
+      {%- if first_name[0] == '.' %}
+      {%    set base_name = (first_name | replace('.', '', 1)) %}
+      {%  else %}
+      {%    set base_name = first_name %}
+      {%  endif %}
+      {{  ngx_config_dir }}/{{ site.name | default(base_name) }}.conf
+    state: absent
+  loop: "{{ sites }}"
+  loop_control:
+    loop_var: site
+    label: |-
+      {%  if site.server.server_name is string %}
+      {%    set first_name = site.server.server_name %}
+      {%  else %}
+      {%    set first_name = site.server.server_name[0] %}
+      {%  endif %}
+      {%- if first_name[0] == '.' %}
+      {%    set base_name = (first_name | replace('.', '', 1)) %}
+      {%  else %}
+      {%    set base_name = first_name %}
+      {%  endif %}
+      {{  site.name | default(base_name) }}
+  notify: Reload Nginx
+  when: state | default('present') == 'absent'
