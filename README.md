@@ -20,11 +20,14 @@ to generate). For example:
             listen: "{{ ssl | default(true) | ternary(443, 80) }}"
             ssl: "{{ ssl }}"
 
-Thus, this role provides three independent modes:
+Thus, this role provides four independent modes:
 
 * Daemon configuration which configures `nginx.conf` using `tasks_from: nginx`.
 
 * Site configuration which configures `conf.d/`*`site`*`.conf` using `tasks_from: site`.
+
+* Bulk site configuration mode: same as above, but using `sites` array; invoke with
+  `tasks_from: sites-bulk`.
 
 * SSL key pair installation and DH params generation.
 
