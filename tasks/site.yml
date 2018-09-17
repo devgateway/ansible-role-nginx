@@ -32,4 +32,5 @@
       {%  endif %}
       {{  ngx_config_dir }}/{{ site.name | default(base_name) }}.conf
     state: absent
+  notify: Reload Nginx
   when: state | default('present') == 'absent'
