@@ -51,7 +51,7 @@
 {{        special }}
 {%      endif %}
 {%      for key, value in context.map.iteritems() %}
-{{        key ~ ' ' ~ value }};
+{{        (key | quote) ~ ' ' ~ (value | quote) }};
 {%-       if not loop.last %}
 {{          '\n' }}
 {%-       endif %}
