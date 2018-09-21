@@ -13,7 +13,9 @@
 {%          set arg = arg | quote %}
 {%        endif %}
 {%      endif %}
-{{      ' ' ~ arg }}
+{%      if arg is not none %}
+{{        ' ' ~ arg }}
+{%-     endif %}
 {%-   endfor %}
 {%    for key, val in my_kwargs | dictsort %}
 {%-     if val is sameas true %}
