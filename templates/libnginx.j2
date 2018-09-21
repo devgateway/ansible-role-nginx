@@ -9,13 +9,11 @@
 {%      elif arg is sameas false %}
 {%        set arg = 'off' %}
 {%      else %}
-{%        if arg is string and ' ' in arg %}
+{%        if arg is string and (' ' in arg or not arg) %}
 {%          set arg = arg | quote %}
-{%        elif arg == '' %}
-{%          set arg = "''" %}
 {%        endif %}
 {%      endif %}
-{{      ' ' }}{{ arg }}
+{{      ' ' ~ arg }}
 {%-   endfor %}
 {%    for key, val in my_kwargs | dictsort %}
 {%-     if val is sameas true %}
