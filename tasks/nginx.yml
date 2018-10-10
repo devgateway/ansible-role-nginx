@@ -3,5 +3,4 @@
   template:
     src: nginx.conf.j2
     dest: "{{ ngx_config_path }}"
-    validate: "nginx -tc %s"
   notify: Reload Nginx
