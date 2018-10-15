@@ -164,10 +164,16 @@ Example:
       http:
         sendfile: true
 
+### Optional Variable: `automatic_ssl_redirects`
+
+If *true*, a `server` block is generated to redirect from plaintext to SSL site. See below for
+details.
+
+Default: *false*
+
 ### Optional Variable: `ngx_config_path`
 
-Path to Nginx main configuration file. Its grammar will be verified with `nginx -tc`, so if you
-include `conf.d` configs, run this mode *after* you configure all sites.
+Path to Nginx main configuration file.
 
 Default: `/etc/nginx/nginx.conf`
 
@@ -236,9 +242,9 @@ Depending on the main server SSL settings, one or two (SSL-enabled and plaintext
 blocks are generated. Each contains nothing but unconditional permanent redirect to the main
 server. The logic of main server domain name detection is described below.
 
-Additionally, if SSL is enabled for the main site, the third `server` block is generated, with the
-same `server_name` as the main server. This block contains a permanent redirect from plaintext site
-to SSL.
+Additionally, if SSL is enabled for the main site and `automatic_ssl_redirects` is *true*, the
+third `server` block is generated, with the same `server_name` as the main server. This block
+contains a permanent redirect from plaintext site to SSL.
 
 ### Main Server Block
 

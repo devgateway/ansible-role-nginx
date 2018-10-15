@@ -46,14 +46,16 @@
 {%  endset %}
 
 {%- set site_ssl %}
-{%    if site.server.ssl | default(false) %}
-{{      'Redirect from non-SSL to SSL' | comment }}
-{%      set content %}
-{{        ngx.directive('listen', 80) }}
-{{        ngx.directive('server_name', site.server.server_name) }}
-{{        libsite.redirect(host = libsite.primary_name(), ssl = true) }}
-{%-     endset %}
-{{      ngx.block('server', content) }}
+{%    if automatic_ssl_redirects | default(false) %}
+{%      if site.server.ssl | default(false) %}
+{{        'Redirect from non-SSL to SSL' | comment }}
+{%        set content %}
+{{          ngx.directive('listen', 80) }}
+{{          ngx.directive('server_name', site.server.server_name) }}
+{{          libsite.redirect(host = libsite.primary_name(), ssl = true) }}
+{%-       endset %}
+{{        ngx.block('server', content) }}
+{%-     endif -%}
 {%-   endif -%}
 {%  endset %}
 
