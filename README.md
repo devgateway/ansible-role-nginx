@@ -26,8 +26,9 @@ Thus, this role provides four independent modes:
 
 * Site configuration which configures `conf.d/`*`site`*`.conf` using `tasks_from: site`.
 
-* Bulk site configuration mode: same as above, but using `sites` array; invoke with
-  `tasks_from: sites-bulk`.
+* Bulk site configuration mode: sites are read from `sites` array; invoke with
+  `tasks_from: sites-bulk`. In this mode, individual configs will be assembled into one file: this
+  allows for easy site deletion.
 
 * SSL key pair installation and DH params generation.
 
@@ -176,6 +177,13 @@ Default: *false*
 Path to Nginx main configuration file.
 
 Default: `/etc/nginx/nginx.conf`
+
+
+### Optional Variable: `ngx_site_config`
+
+Base name of the config file for bulk sites. It will be placed in `ngx_config_dir`.
+
+Default: `ansible.conf`
 
 ## Site Configuration Mode (`conf.d/`*`site`*`.conf`)
 
