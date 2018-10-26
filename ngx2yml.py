@@ -118,7 +118,8 @@ class Context(Statement):
         data = {}
         for name, directives in self.directives.items():
             if len(directives) == 1:
-                # single directive in this context
+                # single directive in this context, e.g.:
+                # server_name example.org;
                 this_directive = directives[0]
                 if this_directive.kwargs:
                     # keyworded args present, make it a dictionary
@@ -127,9 +128,14 @@ class Context(Statement):
                     if this_directive.args:
                         data[name]['args'] = this_directive.args
                 else:
+                    # only positional args, or no args
                     data[name] = get_args(this_directive)
             else:
-                # multiple directives in this context
+                # multiple directives in this context, e.g.:
+                # proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                # proxy_set_header X-Forwarded-Proto $scheme;
+
+                # returns array of bools, whether directives have multiple arguments
                 multiple_args = map(lambda d: len(d.args) > 1, directives)
                 if all(multiple_args):
                     # make a dict with each first arg as the key
