@@ -70,6 +70,8 @@ class Directive(Statement):
         return result
 
 class Context(Statement):
+    """A context in config, such as http, server, or location."""
+
     def __init__(self, name, args = None):
         super().__init__(name)
         self.args = args
@@ -79,20 +81,35 @@ class Context(Statement):
 
     @staticmethod
     def _add_item(_dict, item, name):
+        """Elements of the dictionary are lists. Add an item to such list."""
+        # Example:
+        # server:
+        #   server_name:
+        #     - example.org
+        #     - example.net # new item
+
         if name not in _dict:
             _dict[name] = []
         _dict[name].append(item)
 
     def add_directive(self, name, tokens):
+        """Add a directive into current context."""
+
         directive = Directive(name, tokens)
         self._add_item(self.directives, directive, name)
 
     def add_context(self, child):
+        """Add a nested context into current."""
+
         child.parent = self
         self._add_item(self.children, child, child.name)
 
     def get_data(self):
+        """Serialize the context into a dictionary."""
+
         def get_args(directive):
+            """Return arguments as a scalar or an array."""
+
             if len(directive.args) == 1:
                 return directive.args[0]
             else:
@@ -159,11 +176,24 @@ def get_logger():
     return logging.getLogger('ngx2yaml')
 
 class NginxConfig():
+    """
+    Represents a single file from conf.d/*.conf
+    """
     # match single or double quoted strings, parenthesized expressions, and barewords
     tokenizer = re.compile(r'(?:\'[^\']*\')|(?:"[^"]*")|(?:\([^)]+\))|(?:[^\'"\s]+)')
 
     @classmethod
     def read_config(cls, file_name):
+        """
+        Parse a config file, return a site dictionary.
+
+        Args:
+            cls: Class object
+            file_name: Config file name
+
+        Returns:
+            A dictionary: directive name -> arguments
+        """
         log.info('Parsing %s' % file_name)
         http = Context('http')
 
@@ -181,6 +211,7 @@ class NginxConfig():
                         log.debug('Exit context %s' % curr_ctx.name)
                         curr_ctx = curr_ctx.parent
                     else:
+                        # split string into tokens
                         tokens = cls.tokenizer.findall(line[:-1])
                         if line[-1] == ';':
                             # add directive at current context
