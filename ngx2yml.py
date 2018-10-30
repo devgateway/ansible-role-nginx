@@ -132,16 +132,7 @@ class Context(Statement):
             if len(directives) == 1:
                 # single directive in this context, e.g.:
                 # server_name example.org;
-                this_directive = directives[0]
-                if this_directive.kwargs:
-                    # keyworded args present, make it a dictionary
-                    data[name] = {'kwargs': this_directive.kwargs}
-                    # if positional args also present, add them as 'args' member
-                    if this_directive.args:
-                        data[name]['args'] = this_directive.args
-                else:
-                    # only positional args, or no args
-                    data[name] = get_args(this_directive)
+                data[name] = get_args(directives[0])
             else:
                 # multiple directives in this context, e.g.:
                 # proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
