@@ -108,12 +108,23 @@ class Context(Statement):
         """Serialize the context into a dictionary."""
 
         def get_args(directive):
-            """Return arguments as a scalar or an array."""
+            """Return arguments as a dict, scalar or an array."""
 
-            if len(directive.args) == 1:
-                return directive.args[0]
+            if directive.kwargs:
+                # keyworded args present, make it a dictionary
+                result = {'kwargs': directive.kwargs}
+                # if positional args also present, add them as 'args' member
+                if directive.args:
+                    result['args'] = directive.args
             else:
-                return directive.args
+                if len(directive.args) == 0: # no args, e.g. ip_hash
+                    result = None
+                if len(directive.args) == 1: # one arg: scalar
+                    result = directive.args[0]
+                else:
+                    result = directive.args # array of args
+
+            return result
 
         # get directives in this context
         data = {}
