@@ -115,6 +115,7 @@ class Context(Statement):
             else:
                 return directive.args
 
+        # get directives in this context
         data = {}
         for name, directives in self.directives.items():
             if len(directives) == 1:
@@ -137,17 +138,20 @@ class Context(Statement):
 
                 # returns array of bools, whether directives have multiple arguments
                 multiple_args = map(lambda d: len(d.args) > 1, directives)
-                if all(multiple_args):
-                    # make a dict with each first arg as the key
+                if not (len(name) > 5 and name[-5:] == '_zone') and all(multiple_args):
+                    # first argument of the directives can be a dictionary key
                     data[name] = {}
                     for directive in directives:
-                        args = directive.args[:]
+                        args = directive.args[:] # deep copy the array
                         key = args.pop(0)
                         data[name][key] = args
                 else:
-                    # array of arrays of arguments
+                    # either some directives have fewer than 2 arguments (nothing can become the
+                    # dictionary value), or it's a *_zone directive (the first argument may not be
+                    # unique; return array of arrays of arguments
                     data[name] = [[get_args(d) for d in directives]]
 
+        # get child contexts and their directives
         for directive_name, contexts in self.children.items():
             context_data = []
             for context in contexts:
