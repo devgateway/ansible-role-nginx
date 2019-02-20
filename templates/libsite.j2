@@ -50,7 +50,7 @@
 {%      if special %}
 {{        special }}
 {%      endif %}
-{%      for key, value in context.map.iteritems() %}
+{%      for key, value in context.map.items() %}
 {{        (key | quote) ~ ' ' ~ (value | quote) }};
 {%-       if not loop.last %}
 {{          '\n' }}
