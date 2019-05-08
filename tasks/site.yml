@@ -3,34 +3,28 @@
   template:
     src: site.conf.j2
     dest: |-
-      {%  if site.server.server_name is string %}
-      {%    set first_name = site.server.server_name %}
+      {#  Detect the preferred server name #}
+      {%  if site.server.server_name is not defined %}
+      {%    set server_name = '' %}
+      {%  elif site.server.server_name is string %}
+      {%    set server_name = site.server.server_name %}
       {%  else %}
-      {%    set first_name = site.server.server_name[0] %}
+      {%    set server_name = site.server.server_name[0] %}
       {%  endif %}
-      {%- if first_name[0] == '.' %}
-      {%    set base_name = (first_name | replace('.', '', 1)) %}
+      {#  Remove the leading dot from server name #}
+      {%  if server_name[0] == '.' %}
+      {%    set server = (server_name | replace('.', '', 1)) %}
+      {%  endif %}
+      {#  Detect the preferred listen port #}
+      {%  if site.server.listen is not defined %}
+      {%    set port = 80 %}
+      {%  elif site.server.listen is number %}
+      {%    set port = site.server.listen %}
+      {%  elif site.server.listen is string %}
+      {%    set port = site.server.listen.split(' ')[0] %}
       {%  else %}
-      {%    set base_name = first_name %}
+      {%    set port = (site.server.listen[0] | string).split(' ')[0] %}
       {%  endif %}
-      {{  ngx_config_dir }}/{{ site.name | default(base_name) }}.conf
+      {#  Combine port and server name to uniquely identify the virtual host #}
+      {{  ngx_config_dir }}/{{  port }}_{{ server_name }}.conf
   notify: Reload Nginx
-  when: state | default('present') == 'present'
-
-- name: Delete site
-  file:
-    path: |-
-      {%  if site.server.server_name is string %}
-      {%    set first_name = site.server.server_name %}
-      {%  else %}
-      {%    set first_name = site.server.server_name[0] %}
-      {%  endif %}
-      {%- if first_name[0] == '.' %}
-      {%    set base_name = (first_name | replace('.', '', 1)) %}
-      {%  else %}
-      {%    set base_name = first_name %}
-      {%  endif %}
-      {{  ngx_config_dir }}/{{ site.name | default(base_name) }}.conf
-    state: absent
-  notify: Reload Nginx
-  when: state | default('present') == 'absent'
