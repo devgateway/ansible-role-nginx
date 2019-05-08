@@ -1,7 +1,6 @@
 ---
 ngx_config_path: /etc/nginx/nginx.conf
 ngx_config_dir: /etc/nginx/conf.d
-ngx_site_config: ansible.conf
 ngx_cert_dir:
   RedHat: /etc/pki/tls/certs
 ngx_key_dir:
