@@ -1,3 +1,13 @@
+{%  macro quote_string(arg) %}
+{%-   if not arg -%}
+{{      "''" }}
+{%-   elif arg | regex_search('[\'"{};\\s]') -%}
+{{      "'{}'".format(arg | replace("'", "\\'")) }}
+{%-   else -%}
+{{      arg }}
+{%-   endif -%}
+{%- endmacro -%}
+
 {%  macro directive(directive, my_args = [], my_kwargs = {}) %}
 {%    if my_args is string or my_args is not sequence %}
 {%      set my_args = [my_args] %}
@@ -8,10 +18,8 @@
 {%        set arg = 'on' %}
 {%      elif arg is sameas false %}
 {%        set arg = 'off' %}
-{%      else %}
-{%        if arg is string and (' ' in arg or not arg) %}
-{%          set arg = arg | quote %}
-{%        endif %}
+{%      elif arg is string %}
+{%        set arg = quote_string(arg) %}
 {%      endif %}
 {%      if arg is not none %}
 {{        ' ' ~ arg }}

@@ -51,7 +51,7 @@
 {{        special }}
 {%      endif %}
 {%      for key, value in context.map.items() %}
-{{        (key | quote) ~ ' ' ~ (value | quote) }};
+{{        '{} {}'.format(ngx.quote_string(key | string), ngx.quote_string(value | string)) }};
 {%-       if not loop.last %}
 {{          '\n' }}
 {%-       endif %}
